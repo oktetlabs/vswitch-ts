@@ -1,0 +1,98 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Add VM to peer-to-peer IUT-tester network
+#
+# Parameters:
+#   TA_IUT          test agent with IUT interface
+#   IF_IUT          IUT interface name
+#   TA_TST          test agent with tester interface
+#   IF_TST          tester interface name
+#   VM_IUT          VM on IUT
+#   VM_TEMPLATE     VM tempalte with VM and corresponding RCF settigns
+#   TA_IUT_VM       test agent name to run on IUT VM
+#   MTU             MTU to be set on interfaces used to generate test traffic
+#   OLD_NET         Old configuration network name to be deleted
+
+- copy:
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}"
+      value: "/local:/vm:${VM_TEMPLATE}/template:"
+
+- set:
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/net:net0/type:"
+      value: tap-vhost
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/net:net0/type_spec:"
+      value: tap-${VM_IUT}
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/status:"
+      value: 1
+
+- get:
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/ssh_port:/host:"
+      value: VM_IUT_SSH_PORT
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/rcf_port:"
+      value: VM_IUT_RCF_PORT
+
+- copy:
+    - oid: "/rcf:/agent:${TA_IUT_VM}"
+      value: "/local:/vm:${VM_TEMPLATE}/rcf:"
+
+- add:
+    - oid: "/rcf:/agent:${TA_IUT_VM}/conf:port"
+      value: "${VM_IUT_RCF_PORT}"
+    - oid: "/rcf:/agent:${TA_IUT_VM}/conf:ssh_proxy"
+      value: "${TE_IUT}"
+    - oid: "/rcf:/agent:${TA_IUT_VM}/conf:ssh_port"
+      value: "${VM_IUT_SSH_PORT}"
+
+- set:
+    - oid: "/rcf:/agent:${TA_IUT_VM}/status:"
+      value: 1
+
+# Configure added TA
+- set:
+    - oid: "/agent:${TA_IUT_VM}/rpcprovider:"
+      value: "ta_rpcs"
+
+- add:
+    - oid: "/agent:${TA_IUT}/rsrc:br-iut"
+      value: "/agent:${TA_IUT}/interface:br-iut"
+    - oid: "/agent:${TA_IUT}/rsrc:tap-${VM_IUT}"
+      value: "/agent:${TA_IUT}/interface:tap-${VM_IUT}"
+    - oid: "/agent:${TA_IUT}/bridge:br-iut"
+
+- set:
+    - oid: "/agent:${TA_IUT}/interface:br-iut/status:"
+      value: 1
+    - oid: "/agent:${TA_IUT}/interface:tap-${VM_IUT}/mtu:"
+      value: "${MTU}"
+    - oid: "/agent:${TA_IUT}/interface:tap-${VM_IUT}/status:"
+      value: 1
+
+- add:
+    - oid: "/agent:${TA_IUT}/bridge:br-iut/port:${IF_IUT}"
+      value: "/agent:${TA_IUT}/interface:${IF_IUT}"
+    - oid: "/agent:${TA_IUT}/bridge:br-iut/port:tap-${VM_IUT}"
+      value: "/agent:${TA_IUT}/interface:tap-${VM_IUT}"
+
+- set:
+    - oid: "/agent:${TA_IUT}/interface:${IF_IUT}/mtu:"
+      value: "${MTU}"
+    - oid: "/agent:${TA_TST}/interface:${IF_TST}/mtu:"
+      value: "${MTU}"
+
+# Substitute test network with a new one over VLANs
+- delete:
+    - oid: "/net:${OLD_NET}"
+
+- add:
+    - oid: "/net:net1"
+    - oid: "/net:net1/node:A"
+      value: "/agent:${TA_IUT_VM}/hardware:/pci:/vendor:1af4/device:1000/instance:0"
+    - oid: "/net:net1/node:B"
+      value: "/agent:${TA_TST}/interface:${IF_TST}"
+
+- set:
+    - oid: "/net:net1/node:A/type:"
+      value: 1
+    - oid: "/net:net1/node:B/type:"
+      value: 0

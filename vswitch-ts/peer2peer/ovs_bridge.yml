@@ -1,0 +1,45 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Add Open vSwitch bridged peer-to-peer IUT-tester network
+#
+# Parameters:
+#   TA_IUT          test agent with IUT interface
+#   IF_IUT          IUT interface name
+#   IF_IUT_BR       bridge interface to be created on IUT
+#   TA_TST          test agent with tester interface
+#   IF_TST          tester interface name
+#   OLD_NET         old configuration network name to be deleted
+
+- set:
+    - oid: "/agent:${TA_IUT}/interface:${IF_IUT}/mtu:"
+      value: "${MTU}"
+    - oid: "/agent:${TA_TST}/interface:${IF_TST}/mtu:"
+      value: "${MTU}"
+    - oid: "/agent:${TA_IUT}/ovs:/status:"
+      value: 1
+
+- add:
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:${IF_IUT_BR}"
+      value: "system"
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:${IF_IUT_BR}/port:${IF_IUT}"
+      value: ""
+    - oid: "/agent:${TA_IUT}/rsrc:${IF_IUT_BR}"
+      value: "/agent:${TA_IUT}/interface:${IF_IUT_BR}"
+
+# Substitute test network with a new one
+- delete:
+    - oid: "/net:${OLD_NET}"
+
+- add:
+    - oid: "/net:net1"
+    - oid: "/net:net1/node:A"
+      value: "/agent:${TA_IUT}/interface:${IF_IUT_BR}"
+    - oid: "/net:net1/node:B"
+      value: "/agent:${TA_TST}/interface:${IF_TST}"
+
+- set:
+    - oid: "/net:net1/node:A/type:"
+      value: 1
+    - oid: "/net:net1/node:B/type:"
+      value: 0

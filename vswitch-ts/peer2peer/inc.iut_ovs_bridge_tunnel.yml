@@ -1,0 +1,48 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Connect "tap-${VM_IUT}" interface and tunnel interface via OVS bridge on IUT
+#
+# Parameters:
+#   TA_IUT          test agent with IUT interface
+#   IF_IUT          IUT interface name
+#   IF_IUT_TNL      Tunnel interface to be created on IUT
+#   IF_IUT_TNL_TYPE Type of the tunnel interface
+#   TNL_IUT_LOCAL   Tunnel local address on IUT side
+#                   (equal to TNL_TST_REMOTE by default)
+#   TNL_IUT_REMOTE  Tunnel remote address on IUT side
+#   TNL_TST_REMOTE  Tunnel remote address on tester side
+#   VNI             Virtual network identifier
+#   VM_IUT          VM on IUT
+
+- set:
+    - oid: "/agent:${TA_IUT}/interface:${IF_IUT}/mtu:"
+      value: "${TNL_LOWER_MTU}"
+
+- set:
+    - oid: "/agent:${TA_IUT}/ovs:/status:"
+      value: 1
+
+- add:
+    - oid: "/agent:${TA_IUT}/ovs:/interface:tap-${VM_IUT}"
+      value: "system"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:${IF_IUT_TNL}"
+      value: "${IF_IUT_TNL_TYPE}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:${IF_IUT_TNL}/tunnel_option:remote_ip"
+      value: "${TNL_IUT_REMOTE}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:${IF_IUT_TNL}/tunnel_option:local_ip"
+      value: "${TNL_IUT_LOCAL:-${TNL_TST_REMOTE}}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:${IF_IUT_TNL}/tunnel_option:in_key"
+      value: "${VNI}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:${IF_IUT_TNL}/tunnel_option:out_key"
+      value: "${VNI}"
+
+- add:
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut"
+      value: "system"
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut/port:${IF_IUT_TNL}"
+      value: ""
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut/port:tap-${VM_IUT}"
+      value: ""
+    - oid: "/agent:${TA_IUT}/rsrc:br-iut"
+      value: "/agent:${TA_IUT}/interface:br-iut"

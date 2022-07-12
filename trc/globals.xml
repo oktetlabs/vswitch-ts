@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved. -->
+<globals>
+    <global name="env.peer2peer">
+        <value>
+            'net':IUT{
+                'iut_host'{
+                    {'iut_rpcs':IUT, if:'iut_if'},
+                    addr:'iut_addr':inet:unicast
+                },
+                'tst_host'{
+                    {'tst_rpcs':tester},
+                    if:'tst_if',
+                    addr:'tst_addr':inet:unicast
+                }
+            }
+        </value>
+    </global>
+
+    <global name="env.peer2peer.iut_server">
+        <value>
+            'net':IUT{
+                'server_host'{
+                    {'iut_rpcs':IUT},
+                    addr:'server_addr':inet:unicast
+                },
+                'client_host'{
+                    {'tst_rpcs':tester},
+                    addr:'client_addr':inet:unicast
+                }
+            },
+            'client_rpcs'='tst_rpcs',
+            'server_rpcs'='iut_rpcs'
+        </value>
+    </global>
+
+    <global name="env.peer2peer.iut_client">
+        <value>
+            'net':IUT{
+                'client_host'{
+                    {'iut_rpcs':IUT},
+                    addr:'client_addr':inet:unicast
+                },
+                'server_host'{
+                    {'tst_rpcs':tester},
+                    addr:'server_addr':inet:unicast
+                }
+            },
+            'client_rpcs'='iut_rpcs',
+            'server_rpcs'='tst_rpcs'
+        </value>
+    </global>
+
+    <global name="env.peer2peer.iut_server_ip6">
+        <value>
+            'net':IUT{
+                'server_host'{
+                    {'iut_rpcs':IUT},
+                    addr:'server_addr':inet6:unicast
+                },
+                'client_host'{
+                    {'tst_rpcs':tester},
+                    addr:'client_addr':inet6:unicast
+                }
+            },
+            'client_rpcs'='tst_rpcs',
+            'server_rpcs'='iut_rpcs'
+        </value>
+    </global>
+
+    <global name="env.peer2peer.iut_client_ip6">
+        <value>
+            'net':IUT{
+                'client_host'{
+                    {'iut_rpcs':IUT},
+                    addr:'client_addr':inet6:unicast
+                },
+                'server_host'{
+                    {'tst_rpcs':tester},
+                    addr:'server_addr':inet6:unicast
+                }
+            },
+            'client_rpcs'='iut_rpcs',
+            'server_rpcs'='tst_rpcs'
+        </value>
+    </global>
+
+</globals>

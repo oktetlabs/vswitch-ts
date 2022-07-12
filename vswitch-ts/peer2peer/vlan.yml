@@ -1,0 +1,47 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Add VLAN to peer-to-peer IUT-tester network
+#
+# Parameters:
+#   TA_IUT      test agent with IUT interface
+#   IF_IUT      IUT interface name
+#   TA_TST      test agent with tester interface
+#   IF_TST      tester interface name
+#   VLAN_ID     VLAN identifier to use
+#   MTU         MTU to be set on interfaces used to generate test traffic
+#   OLD_NET     Old configuration network name to be deleted
+
+- set:
+    - oid: "/agent:${TA_IUT}/interface:${IF_IUT}/mtu:"
+      value: "${MTU}"
+    - oid: "/agent:${TA_TST}/interface:${IF_TST}/mtu:"
+      value: "${MTU}"
+
+# Add VLAN over tested interfaces
+- add:
+    - oid: "/agent:${TA_IUT}/interface:${IF_IUT}/vlans:${VLAN_ID}"
+      value: "${IF_IUT}.${VLAN_ID}"
+    - oid: "/agent:${TA_IUT}/rsrc:${IF_IUT}.${VLAN_ID}"
+      value: "/agent:${TA_IUT}/interface:${IF_IUT}.${VLAN_ID}"
+    - oid: "/agent:${TA_TST}/interface:${IF_TST}/vlans:${VLAN_ID}"
+      value: "${IF_TST}.${VLAN_ID}"
+    - oid: "/agent:${TA_TST}/rsrc:${IF_TST}.${VLAN_ID}"
+      value: "/agent:${TA_TST}/interface:${IF_TST}.${VLAN_ID}"
+
+# Substitute test network with a new one over VLANs
+- delete:
+    - oid: "/net:${OLD_NET}"
+
+- add:
+    - oid: "/net:net1"
+    - oid: "/net:net1/node:A"
+      value: "/agent:${TA_IUT}/interface:${IF_IUT}.${VLAN_ID}"
+    - oid: "/net:net1/node:B"
+      value: "/agent:${TA_TST}/interface:${IF_TST}.${VLAN_ID}"
+
+- set:
+    - oid: "/net:net1/node:A/type:"
+      value: 1
+    - oid: "/net:net1/node:B/type:"
+      value: 0

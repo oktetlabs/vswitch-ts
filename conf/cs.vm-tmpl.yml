@@ -1,0 +1,234 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Environment variables provided by user or other config files:
+# TE_VM_SSH_KEY                 Path to private SSH key to login to VMs as root
+# TE_VM_DRIVES                  Directory with VM drive images: ${vm_os}.qcow2
+# TE_VM_DRIVE_${vm_os}          Specific location of the VM drive image
+#                               (if TE_VM_DRIVES is not applicable or
+#                               different naming scheme is used)
+#
+# Environment variables provided by automation:
+# TE_TA_${vm_os}_TA_TYPE        Exported by script.ta-build
+#
+
+- register:
+    - oid: "/local/vm"
+      access: read_create
+
+    - oid: "/local/vm/rcf"
+      access: read_write
+      type: string
+    - oid: "/local/vm/rcf/conf"
+      access: read_create
+      type: string
+    - oid: "/local/vm/rcf/rcflib"
+      access: read_write
+      type: string
+    - oid: "/local/vm/rcf/rebootable"
+      access: read_write
+      type: integer
+    - oid: "/local/vm/rcf/synch_time"
+      access: read_write
+      type: integer
+
+    - oid: "/local/vm/template"
+      access: read_only
+    - oid: "/local/vm/template/cpu"
+      access: read_only
+    - oid: "/local/vm/template/cpu/model"
+      access: read_write
+      type: string
+    - oid: "/local/vm/template/cpu/num"
+      access: read_write
+      type: integer
+    - oid: "/local/vm/template/mem"
+      access: read_only
+    - oid: "/local/vm/template/mem/size"
+      access: read_write
+      type: integer
+    - oid: "/local/vm/template/mem/path"
+      access: read_write
+      type: string
+    - oid: "/local/vm/template/mem/prealloc"
+      access: read_write
+      type: integer
+    - oid: "/local/vm/template/drive"
+      access: read_create
+    - oid: "/local/vm/template/drive/file"
+      access: read_write
+      type: string
+    - oid: "/local/vm/template/drive/snapshot"
+      access: read_write
+      type: integer
+    - oid: "/local/vm/template/net"
+      access: read_create
+    - oid: "/local/vm/template/net/type"
+      access: read_write
+      type: string
+    - oid: "/local/vm/template/net/type_spec"
+      access: read_write
+      type: string
+
+#
+# Define generic VM template which is inherited by all templates
+#
+- add:
+    - oid: "/local:/vm:generic"
+
+- set:
+    - oid: "/local:/vm:generic/rcf:/rcflib:"
+      value: "rcfunix"
+    - oid: "/local:/vm:generic/rcf:/rebootable:"
+      value: 1
+    - oid: "/local:/vm:generic/rcf:/synch_time:"
+      value: 0
+
+- add:
+    - oid: "/local:/vm:generic/rcf:/conf:host"
+      value: "localhost"
+    - oid: "/local:/vm:generic/rcf:/conf:user"
+      value: "root"
+    - oid: "/local:/vm:generic/rcf:/conf:key"
+      value: "${TE_VM_SSH_KEY}"
+    - oid: "/local:/vm:generic/rcf:/conf:copy_tries"
+      value: 10
+
+- add:
+    - oid: "/local:/vm:generic/template:/drive:root"
+    - oid: "/local:/vm:generic/template:/net:net0"
+
+- set:
+    - oid: "/local:/vm:generic/template:/cpu:/model:"
+      value: "host"
+    - oid: "/local:/vm:generic/template:/cpu:/num:"
+      value: 4
+    - oid: "/local:/vm:generic/template:/mem:/size:"
+      value: 2048
+    - oid: "/local:/vm:generic/template:/mem:/path:"
+      value: /dev/hugepages
+    - oid: "/local:/vm:generic/template:/mem:/prealloc:"
+      value: 1
+    - oid: "/local:/vm:generic/template:/drive:root/snapshot:"
+      value: 1
+
+# x86_64_centos7
+- copy:
+    - oid: "/local:/vm:x86_64_centos7"
+      value: "/local:/vm:generic"
+- set:
+    # TA type is defined by script.ta-build based on BUILD_HOST variables
+    - oid: "/local:/vm:x86_64_centos7/rcf:"
+      value: "${TE_TA_x86_64_centos7_TA_TYPE}"
+    - oid: "/local:/vm:x86_64_centos7/template:/drive:root/file:"
+      value: "${TE_VM_DRIVE_x86_64_centos7:-${TE_VM_DRIVES:-/srv/virtual}/x86_64_centos7.qcow2}"
+
+# x86_64_centos8
+- copy:
+    - oid: "/local:/vm:x86_64_centos8"
+      value: "/local:/vm:generic"
+- set:
+    # TA type is defined by script.ta-build based on BUILD_HOST variables
+    - oid: "/local:/vm:x86_64_centos8/rcf:"
+      value: "${TE_TA_x86_64_centos8_TA_TYPE}"
+    - oid: "/local:/vm:x86_64_centos8/template:/drive:root/file:"
+      value: "${TE_VM_DRIVE_x86_64_centos8:-${TE_VM_DRIVES:-/srv/virtual}/x86_64_centos8.qcow2}"
+
+# x86_64_debian9
+- copy:
+    - oid: "/local:/vm:x86_64_debian9"
+      value: "/local:/vm:generic"
+- set:
+    # TA type is defined by script.ta-build based on BUILD_HOST variables
+    - oid: "/local:/vm:x86_64_debian9/rcf:"
+      value: "${TE_TA_x86_64_debian9_TA_TYPE}"
+    - oid: "/local:/vm:x86_64_debian9/template:/drive:root/file:"
+      value: "${TE_VM_DRIVE_x86_64_debian9:-${TE_VM_DRIVES:-/srv/virtual}/x86_64_debian9.qcow2}"
+
+# x86_64_debian10
+- copy:
+    - oid: "/local:/vm:x86_64_debian10"
+      value: "/local:/vm:generic"
+- set:
+    # TA type is defined by script.ta-build based on BUILD_HOST variables
+    - oid: "/local:/vm:x86_64_debian10/rcf:"
+      value: "${TE_TA_x86_64_debian10_TA_TYPE}"
+    - oid: "/local:/vm:x86_64_debian10/template:/drive:root/file:"
+      value: "${TE_VM_DRIVE_x86_64_debian10:-${TE_VM_DRIVES:-/srv/virtual}/x86_64_debian10.qcow2}"
+
+# x86_64_debian11
+- copy:
+    - oid: "/local:/vm:x86_64_debian11"
+      value: "/local:/vm:generic"
+- set:
+    # TA type is defined by script.ta-build based on BUILD_HOST variables
+    - oid: "/local:/vm:x86_64_debian11/rcf:"
+      value: "${TE_TA_x86_64_debian11_TA_TYPE}"
+    - oid: "/local:/vm:x86_64_debian11/template:/drive:root/file:"
+      value: "${TE_VM_DRIVE_x86_64_debian11:-${TE_VM_DRIVES:-/srv/virtual}/x86_64_debian11.qcow2}"
+
+# x86_64_fedora32
+- copy:
+    - oid: "/local:/vm:x86_64_fedora32"
+      value: "/local:/vm:generic"
+- set:
+    # TA type is defined by script.ta-build based on BUILD_HOST variables
+    - oid: "/local:/vm:x86_64_fedora32/rcf:"
+      value: "${TE_TA_x86_64_fedora32_TA_TYPE}"
+    - oid: "/local:/vm:x86_64_fedora32/template:/drive:root/file:"
+      value: "${TE_VM_DRIVE_x86_64_fedora32:-${TE_VM_DRIVES:-/srv/virtual}/x86_64_fedora32.qcow2}"
+
+# x86_64_fedora33
+- copy:
+    - oid: "/local:/vm:x86_64_fedora33"
+      value: "/local:/vm:generic"
+- set:
+    # TA type is defined by script.ta-build based on BUILD_HOST variables
+    - oid: "/local:/vm:x86_64_fedora33/rcf:"
+      value: "${TE_TA_x86_64_fedora33_TA_TYPE}"
+    - oid: "/local:/vm:x86_64_fedora33/template:/drive:root/file:"
+      value: "${TE_VM_DRIVE_x86_64_fedora33:-${TE_VM_DRIVES:-/srv/virtual}/x86_64_fedora33.qcow2}"
+
+# x86_64_rhel7
+- copy:
+    - oid: "/local:/vm:x86_64_rhel7"
+      value: "/local:/vm:generic"
+- set:
+    # TA type is defined by script.ta-build based on BUILD_HOST variables
+    - oid: "/local:/vm:x86_64_rhel7/rcf:"
+      value: "${TE_TA_x86_64_rhel7_TA_TYPE}"
+    - oid: "/local:/vm:x86_64_rhel7/template:/drive:root/file:"
+      value: "${TE_VM_DRIVE_x86_64_rhel7:-${TE_VM_DRIVES:-/srv/virtual}/x86_64_rhel7.qcow2}"
+
+# x86_64_rhel8
+- copy:
+    - oid: "/local:/vm:x86_64_rhel8"
+      value: "/local:/vm:generic"
+- set:
+    # TA type is defined by script.ta-build based on BUILD_HOST variables
+    - oid: "/local:/vm:x86_64_rhel8/rcf:"
+      value: "${TE_TA_x86_64_rhel8_TA_TYPE}"
+    - oid: "/local:/vm:x86_64_rhel8/template:/drive:root/file:"
+      value: "${TE_VM_DRIVE_x86_64_rhel8:-${TE_VM_DRIVES:-/srv/virtual}/x86_64_rhel8.qcow2}"
+
+# x86_64_ubuntu18_04
+- copy:
+    - oid: "/local:/vm:x86_64_ubuntu18_04"
+      value: "/local:/vm:generic"
+- set:
+    # TA type is defined by script.ta-build based on BUILD_HOST variables
+    - oid: "/local:/vm:x86_64_ubuntu18_04/rcf:"
+      value: "${TE_TA_x86_64_ubuntu18_04_TA_TYPE}"
+    - oid: "/local:/vm:x86_64_ubuntu18_04/template:/drive:root/file:"
+      value: "${TE_VM_DRIVE_x86_64_ubuntu18_04:-${TE_VM_DRIVES:-/srv/virtual}/x86_64_ubuntu18_04.qcow2}"
+
+# x86_64_ubuntu20_04
+- copy:
+    - oid: "/local:/vm:x86_64_ubuntu20_04"
+      value: "/local:/vm:generic"
+- set:
+    # TA type is defined by script.ta-build based on BUILD_HOST variables
+    - oid: "/local:/vm:x86_64_ubuntu20_04/rcf:"
+      value: "${TE_TA_x86_64_ubuntu20_04_TA_TYPE}"
+    - oid: "/local:/vm:x86_64_ubuntu20_04/template:/drive:root/file:"
+      value: "${TE_VM_DRIVE_x86_64_ubuntu20_04:-${TE_VM_DRIVES:-/srv/virtual}/x86_64_ubuntu20_04.qcow2}"

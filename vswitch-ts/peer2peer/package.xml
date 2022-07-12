@@ -1,0 +1,341 @@
+<?xml version="1.0"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved. -->
+<package version="1.0">
+
+    <description>Peer-to-peer use cases</description>
+
+    <author mailto="Andrew.Rybchenko@oktetlabs.ru"/>
+
+    <session track_conf="silent" track_conf_handdown="descendants">
+        <arg name="config"/>
+        <arg name="with_dpdk"/>
+        <arg name="vm_os"/>
+
+        <var name="env.peer2peer" global="true">
+            <value reqs="IP4">
+                'net':IUT{
+                    'iut_host'{
+                        {'iut_rpcs':IUT, if:'iut_if'},
+                        addr:'iut_addr':inet:unicast
+                    },
+                    'tst_host'{
+                        {'tst_rpcs':tester},
+                        if:'tst_if',
+                        addr:'tst_addr':inet:unicast
+                    }
+                }
+            </value>
+        </var>
+
+        <var name="env.peer2peer.iut_server" global="true">
+            <value reqs="IP4">
+                'net':IUT{
+                    'server_host'{
+                        {'iut_rpcs':IUT},
+                        addr:'server_addr':inet:unicast
+                    },
+                    'client_host'{
+                        {'tst_rpcs':tester},
+                        addr:'client_addr':inet:unicast
+                    }
+                },
+                'client_rpcs'='tst_rpcs',
+                'server_rpcs'='iut_rpcs'
+            </value>
+        </var>
+
+        <var name="env.peer2peer.iut_client" global="true">
+            <value reqs="IP4">
+                'net':IUT{
+                    'client_host'{
+                        {'iut_rpcs':IUT},
+                        addr:'client_addr':inet:unicast
+                    },
+                    'server_host'{
+                        {'tst_rpcs':tester},
+                        addr:'server_addr':inet:unicast
+                    }
+                },
+                'client_rpcs'='iut_rpcs',
+                'server_rpcs'='tst_rpcs'
+            </value>
+        </var>
+
+        <var name="env.peer2peer.iut_server_ip6" global="true">
+            <value reqs="IP6">
+                'net':IUT{
+                    'server_host'{
+                        {'iut_rpcs':IUT},
+                        addr:'server_addr':inet6:unicast
+                    },
+                    'client_host'{
+                        {'tst_rpcs':tester},
+                        addr:'client_addr':inet6:unicast
+                    }
+                },
+                'client_rpcs'='tst_rpcs',
+                'server_rpcs'='iut_rpcs'
+            </value>
+        </var>
+
+        <var name="env.peer2peer.iut_client_ip6" global="true">
+            <value reqs="IP6">
+                'net':IUT{
+                    'client_host'{
+                        {'iut_rpcs':IUT},
+                        addr:'client_addr':inet6:unicast
+                    },
+                    'server_host'{
+                        {'tst_rpcs':tester},
+                        addr:'server_addr':inet6:unicast
+                    }
+                },
+                'client_rpcs'='iut_rpcs',
+                'server_rpcs'='tst_rpcs'
+            </value>
+        </var>
+
+        <enum name="perf_bench.all">
+            <value reqs="IPERF2">iperf</value>
+            <value reqs="IPERF3">iperf3</value>
+        </enum>
+
+        <prologue>
+            <script name="p2p_prologue"/>
+            <arg name="env">
+                <value ref="env.peer2peer"/>
+            </arg>
+        </prologue>
+
+        <run name="ping">
+            <script name="ping"/>
+            <arg name="env">
+                <value ref="env.peer2peer.iut_server"/>
+                <value ref="env.peer2peer.iut_client"/>
+                <value ref="env.peer2peer.iut_server_ip6"/>
+                <value ref="env.peer2peer.iut_client_ip6"/>
+            </arg>
+            <arg name="packet_size">
+                <value>16</value>
+                <value>32</value>
+                <value>1024</value>
+                <value>1472</value>
+                <value>2000</value>
+                <value>9000</value>
+                <value>16000</value>
+                <value>65000</value>
+            </arg>
+            <arg name="packets_num">
+                <value>3</value>
+            </arg>
+        </run>
+
+        <run name="tcp_conn">
+            <script name="tcp_conn"/>
+
+            <arg name="env">
+                <value ref="env.peer2peer.iut_server"/>
+                <value ref="env.peer2peer.iut_client"/>
+                <value ref="env.peer2peer.iut_server_ip6"/>
+                <value ref="env.peer2peer.iut_client_ip6"/>
+            </arg>
+
+            <arg name="client_packets" list="packets">
+                <value>0</value>
+                <value>5</value>
+                <value>0</value>
+                <value reqs="TEST_HARNESS_SANITY">5,0,7</value>
+            </arg>
+            <arg name="server_packets" list="packets">
+                <value>0</value>
+                <value>0</value>
+                <value>5</value>
+                <value>0,5,7</value>
+            </arg>
+        </run>
+
+        <run name="udp_conn">
+            <script name="udp_conn"/>
+            <arg name="env">
+                <value ref="env.peer2peer.iut_server"/>
+                <value ref="env.peer2peer.iut_client"/>
+                <value ref="env.peer2peer.iut_server_ip6"/>
+                <value ref="env.peer2peer.iut_client_ip6"/>
+            </arg>
+            <arg name="packets">
+                <value>0</value>
+                <value>5</value>
+                <value>7</value>
+                <value>5,7,10</value>
+                <value>1472</value>
+                <value>2000</value>
+                <value>4000</value>
+                <value>9000</value>
+                <value>16000</value>
+                <value>65487</value>
+            </arg>
+        </run>
+
+        <run name="tcp_udp_perf">
+            <session track_conf="silent" track_conf_handdown="descendants">
+                <arg name="config"/>
+                <arg name="with_dpdk"/>
+                <arg name="vm_os"/>
+
+                <run name="tcp_perf2">
+                    <script name="tcp_udp_perf"/>
+                    <arg name="env">
+                      <value ref="env.peer2peer.iut_server"/>
+                      <value ref="env.peer2peer.iut_client"/>
+                    </arg>
+                    <arg name="perf_bench" type="perf_bench.all">
+                        <value>iperf</value>
+                    </arg>
+                    <arg name="dual_mode" type="boolean">
+                        <value>FALSE</value>
+                        <value reqs="TEST_HARNESS_SANITY">TRUE</value>
+                    </arg>
+                    <arg name="protocol">
+                        <value>IPPROTO_TCP</value>
+                    </arg>
+                    <arg name="n_perf_insts">
+                        <value>1</value>
+                    </arg>
+                    <arg name="n_streams">
+                        <value>1</value>
+                        <value>2</value>
+                        <value>4</value>
+                        <value>8</value>
+                        <value>16</value>
+                    </arg>
+                    <arg name="bandwidth">
+                        <value>-1</value>
+                    </arg>
+                </run>
+
+                <run name="tcp_perf3">
+                    <script name="tcp_udp_perf"/>
+                    <arg name="env">
+                      <value ref="env.peer2peer.iut_server"/>
+                      <value ref="env.peer2peer.iut_client"/>
+                    </arg>
+                    <arg name="perf_bench" type="perf_bench.all">
+                        <value>iperf3</value>
+                    </arg>
+                    <arg name="dual_mode" type="boolean">
+                        <value>FALSE</value>
+                        <value reqs="TEST_HARNESS_SANITY">TRUE</value>
+                    </arg>
+                    <arg name="protocol">
+                        <value>IPPROTO_TCP</value>
+                    </arg>
+                    <arg name="n_perf_insts" list="streams_insts">
+                        <value>1</value>
+                        <value>1</value>
+                        <value>2</value>
+                        <value>2</value>
+                        <value>4</value>
+                    </arg>
+                    <arg name="n_streams" list="streams_insts">
+                        <value>1</value>
+                        <value>4</value>
+                        <value>1</value>
+                        <value>2</value>
+                        <value>1</value>
+                    </arg>
+                    <arg name="bandwidth">
+                        <value>-1</value>
+                    </arg>
+                </run>
+
+                <run name="udp_perf2">
+                    <script name="tcp_udp_perf"/>
+                    <arg name="env">
+                      <value ref="env.peer2peer.iut_server"/>
+                      <value ref="env.peer2peer.iut_client"/>
+                    </arg>
+                    <arg name="perf_bench" type="perf_bench.all">
+                        <value>iperf</value>
+                    </arg>
+                    <arg name="dual_mode" type="boolean">
+                        <value>FALSE</value>
+                        <value reqs="TEST_HARNESS_SANITY">TRUE</value>
+                    </arg>
+                    <arg name="protocol">
+                        <value>IPPROTO_UDP</value>
+                    </arg>
+                    <arg name="n_perf_insts">
+                        <value>1</value>
+                    </arg>
+                    <arg name="n_streams">
+                        <value>1</value>
+                        <value>2</value>
+                        <value>4</value>
+                        <value>8</value>
+                        <value>16</value>
+                    </arg>
+                    <arg name="bandwidth">
+                        <value>1000</value>
+                    </arg>
+                </run>
+
+                <run name="udp_perf3">
+                    <script name="tcp_udp_perf"/>
+                    <arg name="env">
+                      <value ref="env.peer2peer.iut_server"/>
+                      <value ref="env.peer2peer.iut_client"/>
+                    </arg>
+                    <arg name="perf_bench" type="perf_bench.all">
+                        <value>iperf3</value>
+                    </arg>
+                    <arg name="dual_mode" type="boolean">
+                        <value>FALSE</value>
+                        <value reqs="TEST_HARNESS_SANITY">TRUE</value>
+                    </arg>
+                    <arg name="protocol">
+                        <value>IPPROTO_UDP</value>
+                    </arg>
+                    <arg name="n_perf_insts" list="streams_insts">
+                        <value>1</value>
+                        <value>1</value>
+                        <value>2</value>
+                        <value>2</value>
+                        <value>4</value>
+                    </arg>
+                    <arg name="n_streams" list="streams_insts">
+                        <value>1</value>
+                        <value>4</value>
+                        <value>1</value>
+                        <value>2</value>
+                        <value>1</value>
+                    </arg>
+                    <arg name="bandwidth">
+                        <value>1000</value>
+                    </arg>
+                </run>
+
+            </session>
+        </run>
+
+        <run>
+            <script name="nginx_perf_wrk"/>
+            <arg name="env">
+              <value ref="env.peer2peer.iut_server"/>
+            </arg>
+            <arg name="duration_sec">
+                <value>10</value>
+            </arg>
+            <arg name="connections">
+                <value>100</value>
+                <value>400</value>
+            </arg>
+            <arg name="n_wrk_threads">
+                <value reqs="TEST_HARNESS_SANITY">4</value>
+                <value>8</value>
+                <value>16</value>
+            </arg>
+        </run>
+
+    </session>
+</package>

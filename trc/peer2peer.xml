@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved. -->
+<test name="peer2peer" type="package">
+  <objective>Peer-to-peer use cases</objective>
+  <notes/>
+  <iter result="PASSED">
+    <arg name="config"/>
+    <arg name="with_dpdk"/>
+    <arg name="vm_os"/>
+    <notes/>
+    <test name="p2p_prologue" type="script">
+      <objective/>
+      <notes/>
+      <iter result="PASSED">
+        <arg name="config"/>
+        <arg name="with_dpdk"/>
+        <arg name="vm_os"/>
+        <arg name="env"/>
+        <notes/>
+      </iter>
+    </test>
+    <test name="ping" type="script">
+      <objective>Ping test</objective>
+      <notes/>
+      <iter result="PASSED">
+        <arg name="config"/>
+        <arg name="with_dpdk"/>
+        <arg name="vm_os"/>
+        <arg name="env"/>
+        <arg name="packets_num"/>
+        <arg name="packet_size"/>
+        <notes/>
+      </iter>
+    </test>
+    <test name="tcp_conn" type="script">
+      <objective>Test TCP connection</objective>
+      <notes/>
+      <iter result="PASSED">
+        <arg name="config"/>
+        <arg name="with_dpdk"/>
+        <arg name="vm_os"/>
+        <arg name="env"/>
+        <arg name="client_packets"/>
+        <arg name="server_packets"/>
+        <notes/>
+      </iter>
+    </test>
+    <test name="udp_conn" type="script">
+      <objective>Test UDP connection</objective>
+      <notes/>
+      <iter result="PASSED">
+        <arg name="config"/>
+        <arg name="with_dpdk"/>
+        <arg name="vm_os"/>
+        <arg name="env"/>
+        <arg name="packets"/>
+        <notes/>
+      </iter>
+    </test>
+    <test name="tcp_perf2" type="script">
+      <objective>Report TCP or UDP performance</objective>
+      <notes/>
+      <iter result="PASSED">
+        <arg name="config"/>
+        <arg name="with_dpdk"/>
+        <arg name="vm_os"/>
+        <arg name="env"/>
+        <arg name="perf_bench"/>
+        <arg name="dual_mode"/>
+        <arg name="protocol"/>
+        <arg name="n_perf_insts"/>
+        <arg name="n_streams"/>
+        <arg name="bandwidth"/>
+        <notes/>
+      </iter>
+    </test>
+    <test name="tcp_perf3" type="script">
+      <objective>Report TCP or UDP performance</objective>
+      <notes/>
+      <iter result="PASSED">
+        <arg name="config"/>
+        <arg name="with_dpdk"/>
+        <arg name="vm_os"/>
+        <arg name="env"/>
+        <arg name="perf_bench"/>
+        <arg name="dual_mode"/>
+        <arg name="protocol"/>
+        <arg name="n_perf_insts"/>
+        <arg name="n_streams"/>
+        <arg name="bandwidth"/>
+        <notes/>
+      </iter>
+    </test>
+    <test name="udp_perf2" type="script">
+      <objective>Report TCP or UDP performance</objective>
+      <notes/>
+      <iter result="PASSED">
+        <arg name="config"/>
+        <arg name="with_dpdk"/>
+        <arg name="vm_os"/>
+        <arg name="env"/>
+        <arg name="perf_bench"/>
+        <arg name="dual_mode"/>
+        <arg name="protocol"/>
+        <arg name="n_perf_insts"/>
+        <arg name="n_streams"/>
+        <arg name="bandwidth"/>
+        <notes/>
+      </iter>
+    </test>
+    <test name="udp_perf3" type="script">
+      <objective>Report TCP or UDP performance</objective>
+      <notes/>
+      <iter result="PASSED">
+        <arg name="config"/>
+        <arg name="with_dpdk"/>
+        <arg name="vm_os"/>
+        <arg name="env"/>
+        <arg name="perf_bench"/>
+        <arg name="dual_mode"/>
+        <arg name="protocol"/>
+        <arg name="n_perf_insts"/>
+        <arg name="n_streams"/>
+        <arg name="bandwidth"/>
+        <notes/>
+      </iter>
+    </test>
+    <test name="nginx_perf_wrk" type="script">
+      <objective>Report nginx performance with wrk</objective>
+      <notes/>
+      <iter result="PASSED">
+        <arg name="config"/>
+        <arg name="with_dpdk"/>
+        <arg name="vm_os"/>
+        <arg name="env"/>
+        <arg name="duration_sec"/>
+        <arg name="connections"/>
+        <arg name="n_wrk_threads"/>
+      </iter>
+    </test>
+  </iter>
+</test>

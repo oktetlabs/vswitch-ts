@@ -1,0 +1,69 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved. */
+/** @mainpage
+
+@tableofcontents
+
+@section copyright_notice Copyright Notice
+
+(c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+
+@section vswitch_introduction Introduction
+
+vSwitch Test Suite is aimed to check certain
+implementation of virtual switching functionality.
+It uses @te_ref te as it's engine.
+
+The suite consists of several packages, see @ref vswitch_specification for top
+level packages list of <a href="modules.html"><b>Table of Contents</b></a>
+for full packages tree.
+
+See @ref vswitch_term_abrev for details on the subject.
+
+@section vswitch_refs References
+
+Find list of documentation mentioned @ref vswitch_refs_details.
+
+@section vswitch_conv Conventions
+
+Parameters of tests are referred in the text using bold italic
+(for example, @p pco_iut).
+
+Names of formal arguments of API functions appear in italic
+(for example, @a addrlen).
+
+Standard defines, elements of enumerations as well as @b errno values
+appear in monotype font (for example, @c AF_INET, @c ENOMEM).
+
+@section vswitch_testbed Testbed
+
+The following setup is required to run the test suite. In theory, Test
+Engine may run on either Test machine or Auxiliary test machine.
+
+@image html testbed.png "Testbed Topology"
+
+@section vswitch_params Test parameters naming conventions
+
+@param iut_rpcs         RPC server on IUT
+@param iut_pci_fn       NIC PCI function on the IUT
+@param iut_mac          MAC address of the @p iut_pci_fn NIC
+@param iut_addr         IPv4/6 unicast address allocated for IUT interface
+@param tst_rpcs         RPC server on TST
+@param tst_if           Network interface on TST connected to the
+                        @p iut_pci_fn NIC
+@param tst_mac          MAC address of the @p tst_if
+@param tst_addr         IPv4/6 unicast address assigned to the @p tst_if
+@param other_mac        Other unicast MAC address
+
+@section vswitch_ts_structure Test Suite Structure
+
+
+@section vswitch_specification Test Specification
+
+@ref list_of_reqs
+
+@ref vswitch_tags_details
+
+@copydoc vswitch
+
+*/

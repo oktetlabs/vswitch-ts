@@ -1,0 +1,74 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Connect vhost-user interface that sends to "${TA_IUT_RUNDIR}/vhost-user.sock"
+# and tunnel interface via OVS bridge on IUT
+#
+# Parameters:
+#   TA_IUT          test agent with IUT interface
+#   IF_IUT          IUT interface name
+#   IF_IUT_TNL      Tunnel interface to be created on IUT
+#   IF_IUT_TNL_TYPE Type of the tunnel interface
+#   TNL_IUT_LOCAL   Tunnel local address on IUT side
+#                   (equal to TNL_TST_REMOTE by default)
+#   TNL_IUT_REMOTE  Tunnel remote address on IUT side
+#   TNL_TST_REMOTE  Tunnel remote address on tester side
+#   VNI             Virtual network identifier
+#   TA_IUT_RUNDIR   Directory where vhost-user.sock is located
+#   NET_PREFIX      Old configuration network prefix
+#   TNL_LOWER_MTU   MTU to be set on tunnel transport interfaces
+#   MTU             MTU to be set on interfaces used to generate test traffic
+
+- set:
+    - oid: "/agent:${TA_IUT}/ovs:/dpdk_init:"
+      value: 1
+    - oid: "/agent:${TA_IUT}/ovs:/status:"
+      value: 1
+
+- add:
+    - oid: "/agent:${TA_IUT}/ovs:/interface:vhost-pci"
+      value: "dpdk"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:vhost-user"
+      value: "dpdkvhostuserclient"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:${IF_IUT_TNL}"
+      value: "${IF_IUT_TNL_TYPE}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:${IF_IUT_TNL}/tunnel_option:remote_ip"
+      value: "${TNL_IUT_REMOTE}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:${IF_IUT_TNL}/tunnel_option:local_ip"
+      value: "${TNL_IUT_LOCAL:-${TNL_TST_REMOTE}}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:${IF_IUT_TNL}/tunnel_option:in_key"
+      value: "${VNI}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:${IF_IUT_TNL}/tunnel_option:out_key"
+      value: "${VNI}"
+
+- set:
+    - oid: "/agent:${TA_IUT}/ovs:/interface:vhost-pci/mtu:"
+      value: "${TNL_LOWER_MTU}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:vhost-pci/dpdk_devargs:"
+      value: "${IF_IUT}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:vhost-user/vhost_server_path:"
+      value: "${TA_IUT_RUNDIR}/vhost-user.sock"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:vhost-user/mtu:"
+      value: "${MTU}"
+
+- add:
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut-phy"
+      value: "netdev"
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut-phy/port:vhost-pci"
+      value: ""
+    - oid: "/agent:${TA_IUT}/rsrc:br-iut-phy"
+      value: "/agent:${TA_IUT}/interface:br-iut-phy"
+    - oid: "/agent:${TA_IUT}/interface:br-iut-phy/net_addr:${TNL_IUT_LOCAL:-${TNL_TST_REMOTE}}"
+      value: "${NET_PREFIX}"
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut-int"
+      value: "netdev"
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut-int/port:vhost-user"
+      value: ""
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut-int/port:${IF_IUT_TNL}"
+      value: ""
+    - oid: "/agent:${TA_IUT}/rsrc:br-iut-int"
+      value: "/agent:${TA_IUT}/interface:br-iut-int"
+
+- set:
+    - oid: "/agent:${TA_IUT}/interface:br-iut-phy/status:"
+      value: 1

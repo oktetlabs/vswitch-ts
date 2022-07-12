@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Log verdict in the case of TEST_FAIL.
+# It makes TRC reports review much easier.
+export TE_TEST_BEHAVIOUR_FAIL_VERDICT=1
+
+# Use vfio-pci by default since it is the future
+export TE_ENV_IUT_DPDK_DRIVER="${TE_ENV_IUT_DPDK_DRIVER:-vfio-pci}"
+export TE_ENV_TST_DPDK_DRIVER="${TE_ENV_TST_DPDK_DRIVER:-vfio-pci}"
+
+case "$(hostname -d)" in
+oktetlabs.ru)
+    test -n "${TE_WORKSPACE_DIR}" \
+        || export TE_WORKSPACE_DIR="/srv/testers/tmp"
+    ;;
+uk.solarflarecom.com)
+    test -n "${TE_WORKSPACE_DIR}" \
+        || export TE_WORKSPACE_DIR="/local/tmp"
+    ;;
+esac

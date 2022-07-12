@@ -1,0 +1,98 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Add Open vSwitch bridged peer-to-peer IUT VF0-tester network
+# via port representor
+#
+# Parameters:
+#   TA_IUT          test agent with IUT interface
+#   IF_IUT          IUT device PCI address
+#   IF_IUT_BR       bridge interface to be created on IUT
+#   TA_TST          test agent with tester interface
+#   IF_TST          tester interface name
+#   OLD_NET         old configuration network name to be deleted
+
+- get:
+    - oid: "/agent:${TA_IUT}/hardware:/pci:/device:${IF_IUT}/sriov:"
+      value: "IUT_PCI_VFMAX"
+
+- set:
+    - oid: "/agent:${TA_IUT}/ovs:/dpdk_init:"
+      value: 1
+    - oid: "/agent:${TA_IUT}/ovs:/status:"
+      value: 1
+    - oid: "/agent:${TA_IUT}/hardware:/pci:/device:${IF_IUT}/sriov:/num_vfs:"
+      value: "${IUT_PCI_VFMAX}"
+
+- get:
+    - oid: "/agent:${TA_IUT}/hardware:/pci:/device:${IF_IUT}/sriov:/vf:0"
+      value: "IUT_PCI_INSTANCE_VF0"
+
+- add:
+    - oid: "/agent:${TA_IUT}/rsrc:vf0_pci_device"
+      value: "${IUT_PCI_INSTANCE_VF0}"
+
+- get:
+    - oid: "${IUT_PCI_INSTANCE_VF0}"
+      value: "IUT_PCI_ADDR_VF0"
+
+- get:
+    - oid: "/local:${TA_IUT}/net_driver:"
+      value: "IUT_NET_DRIVER"
+
+- set:
+    - oid: "${IUT_PCI_ADDR_VF0}/driver:"
+      value: "${IUT_NET_DRIVER}"
+
+- get:
+    - oid: "${IUT_PCI_ADDR_VF0}/net:"
+      value: "IF_IUT_VF0"
+
+- add:
+    - oid: "/agent:${TA_IUT}/rsrc:${IF_IUT_VF0}"
+      value: "/agent:${TA_IUT}/interface:${IF_IUT_VF0}"
+
+- set:
+    - oid: "/agent:${TA_IUT}/interface:${IF_IUT_VF0}/link_addr:"
+      value: "00:01:53:63:54:45"
+    - oid: "/agent:${TA_IUT}/interface:${IF_IUT_VF0}/status:"
+      value: 1
+
+- add:
+    - oid: "/agent:${TA_IUT}/ovs:/interface:dpdk-pf"
+      value: "dpdk"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:dpdk-rep0"
+      value: "dpdk"
+
+- set:
+    - oid: "/agent:${TA_IUT}/ovs:/interface:dpdk-pf/dpdk_devargs:"
+      value: "${IF_IUT}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:dpdk-rep0/dpdk_devargs:"
+      value: "${IF_IUT},representor=[0]"
+
+- add:
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:${IF_IUT_BR}"
+      value: "netdev"
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:${IF_IUT_BR}/port:dpdk-pf"
+      value: ""
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:${IF_IUT_BR}/port:dpdk-rep0"
+      value: ""
+    - oid: "/agent:${TA_IUT}/rsrc:${IF_IUT_BR}"
+      value: "/agent:${TA_IUT}/interface:${IF_IUT_BR}"
+
+# Substitute test network with a new one
+- delete:
+    - oid: "/net:${OLD_NET}"
+
+- add:
+    - oid: "/net:net1"
+    - oid: "/net:net1/node:A"
+      value: "/agent:${TA_IUT}/interface:${IF_IUT_VF0}"
+    - oid: "/net:net1/node:B"
+      value: "/agent:${TA_TST}/interface:${IF_TST}"
+
+- set:
+    - oid: "/net:net1/node:A/type:"
+      value: 1
+    - oid: "/net:net1/node:B/type:"
+      value: 0

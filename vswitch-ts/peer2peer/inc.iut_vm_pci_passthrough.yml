@@ -1,0 +1,71 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Start VM on IUT with IUT device PCI pass-through
+#
+# Parameters:
+#   TA_IUT              test agent with IUT interface
+#   IF_IUT              IUT device PCI address
+#   VM_IUT              VM on IUT
+#   VM_TEMPLATE         VM template with VM and corresponding RCF settings
+#   TA_IUT_VM           test agent name to run on IUT VM
+#   IUT_PCI_VF_ADDR     PCI address of the test VF of the IUT device
+
+- copy:
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}"
+      value: "/local:/vm:${VM_TEMPLATE}/template:"
+
+- set:
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/qemu:"
+      value: "/local/usr/bin/qemu-system-x86_64"
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/machine:"
+      value: "q35,kernel-irqchip=split"
+
+# When PCI device passthrough is enabled, there is no need for an interface
+- delete:
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/net:net0"
+
+- get:
+    - oid: "${IUT_PCI_VF_ADDR}/bus:"
+      value: "IUT_PCI_VF_BUS"
+    - oid: "${IUT_PCI_VF_ADDR}/slot:"
+      value: "IUT_PCI_VF_SLOT"
+    - oid: "${IUT_PCI_VF_ADDR}/fn:"
+      value: "IUT_PCI_VF_FN"
+
+- add:
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/pci_pt:vf"
+      value: "${IUT_PCI_VF_BUS}:${IUT_PCI_VF_SLOT}.${IUT_PCI_VF_FN}"
+
+- set:
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/pci_pt:vf/vf_token:"
+      value: "14d63f20-8445-11ea-8900-1f9ce7d5650d"
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/status:"
+      value: 1
+
+- get:
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/ssh_port:/host:"
+      value: VM_IUT_SSH_PORT
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/rcf_port:"
+      value: VM_IUT_RCF_PORT
+
+- copy:
+    - oid: "/rcf:/agent:${TA_IUT_VM}"
+      value: "/local:/vm:${VM_TEMPLATE}/rcf:"
+
+- add:
+    - oid: "/rcf:/agent:${TA_IUT_VM}/conf:port"
+      value: "${VM_IUT_RCF_PORT}"
+    - oid: "/rcf:/agent:${TA_IUT_VM}/conf:ssh_proxy"
+      value: "${TE_IUT}"
+    - oid: "/rcf:/agent:${TA_IUT_VM}/conf:ssh_port"
+      value: "${VM_IUT_SSH_PORT}"
+
+- set:
+    - oid: "/rcf:/agent:${TA_IUT_VM}/status:"
+      value: 1
+
+# Configure added TA
+- set:
+    - oid: "/agent:${TA_IUT_VM}/rpcprovider:"
+      value: "ta_rpcs"

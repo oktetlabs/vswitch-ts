@@ -1,0 +1,146 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Add Open vSwitch bridged peer-to-peer IUT VM-tester network
+# via port representor
+#
+# Parameters:
+#   TA_IUT          test agent with IUT interface
+#   IF_IUT          IUT device PCI address
+#   IF_IUT_BR       bridge interface to be created on IUT
+#   TA_TST          test agent with tester interface
+#   IF_TST          tester interface name
+#   VM_IUT          VM on IUT
+#   VM_TEMPLATE     VM template with VM and corresponding RCF settings
+#   TA_IUT_VM       test agent name to run on IUT VM
+#   VF NUMBER       VF number to test on IUT
+#   OLD_NET         old configuration network name to be deleted
+
+- get:
+    - oid: "/agent:${TA_IUT}/hardware:/pci:/device:${IF_IUT}/sriov:"
+      value: "IUT_PCI_VFMAX"
+
+- add:
+    - oid: "/agent:${TA_IUT}/ovs:/other_config:hw-offload"
+      value: "true"
+- set:
+    - oid: "/agent:${TA_IUT}/ovs:/dpdk_init:"
+      value: 1
+    - oid: "/agent:${TA_IUT}/ovs:/status:"
+      value: 1
+    - oid: "/agent:${TA_IUT}/hardware:/pci:/device:${IF_IUT}/sriov:/num_vfs:"
+      value: "${IUT_PCI_VFMAX}"
+
+
+- add:
+    - oid: "/agent:${TA_IUT}/ovs:/interface:dpdk-pf"
+      value: "dpdk"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:dpdk-rep${VF_NUMBER}"
+      value: "dpdk"
+
+- set:
+    - oid: "/agent:${TA_IUT}/ovs:/interface:dpdk-pf/dpdk_devargs:"
+      value: "${IF_IUT}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:dpdk-rep${VF_NUMBER}/dpdk_devargs:"
+      value: "${IF_IUT},representor=[${VF_NUMBER}]"
+
+- add:
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:${IF_IUT_BR}"
+      value: "netdev"
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:${IF_IUT_BR}/port:dpdk-pf"
+      value: ""
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:${IF_IUT_BR}/port:dpdk-rep${VF_NUMBER}"
+      value: ""
+    - oid: "/agent:${TA_IUT}/rsrc:${IF_IUT_BR}"
+      value: "/agent:${TA_IUT}/interface:${IF_IUT_BR}"
+
+- get:
+    - oid: "/agent:${TA_IUT}/hardware:/pci:/device:${IF_IUT}/sriov:/vf:${VF_NUMBER}"
+      value: "IUT_PCI_INSTANCE_VF"
+
+- add:
+    - oid: "/agent:${TA_IUT}/rsrc:vf_pci_device"
+      value: "${IUT_PCI_INSTANCE_VF}"
+
+- get:
+    - oid: "${IUT_PCI_INSTANCE_VF}"
+      value: "IUT_PCI_VF_ADDR"
+    - oid: "${IUT_PCI_VF_ADDR}/vendor_id:"
+      value: "IUT_PCI_VF_VENDOR"
+    - oid: "${IUT_PCI_VF_ADDR}/device_id:"
+      value: "IUT_PCI_VF_DEVICE"
+
+- include:
+    - inc.iut_vm_pci_passthrough.yml
+
+# Substitute test network with a new one
+- delete:
+    - oid: "/net:${OLD_NET}"
+
+- add:
+    - oid: "/agent:${TA_IUT_VM}/module:nf_flow_table"
+    - oid: "/agent:${TA_IUT_VM}/module:pps_core"
+    - oid: "/agent:${TA_IUT_VM}/module:ptp"
+    - oid: "/agent:${TA_IUT_VM}/module:mtd"
+    - oid: "/agent:${TA_IUT_VM}/module:mdio"
+    - oid: "/agent:${TA_IUT_VM}/module:virtual_bus"
+    - oid: "/agent:${TA_IUT_VM}/module:sfc_driverlink"
+    - oid: "/agent:${TA_IUT_VM}/module:sfc"
+
+- set:
+    - oid: "/agent:${TA_IUT_VM}/module:virtual_bus/filename:"
+      value: "/root/virtual_bus.ko"
+    - oid: "/agent:${TA_IUT_VM}/module:sfc_driverlink/filename:"
+      value: "/root/sfc_driverlink.ko"
+    - oid: "/agent:${TA_IUT_VM}/module:sfc/filename:"
+      value: "/root/sfc.ko"
+
+
+- add:
+    - oid: "/agent:${TA_IUT_VM}/rsrc:module:nf_flow_table"
+      value: "/agent:${TA_IUT_VM}/module:nf_flow_table"
+    - oid: "/agent:${TA_IUT_VM}/rsrc:module:pps_core"
+      value: "/agent:${TA_IUT_VM}/module:pps_core"
+    - oid: "/agent:${TA_IUT_VM}/rsrc:module:ptp"
+      value: "/agent:${TA_IUT_VM}/module:ptp"
+    - oid: "/agent:${TA_IUT_VM}/rsrc:module:mtd"
+      value: "/agent:${TA_IUT_VM}/module:mtd"
+    - oid: "/agent:${TA_IUT_VM}/rsrc:module:mdio"
+      value: "/agent:${TA_IUT_VM}/module:mdio"
+    - oid: "/agent:${TA_IUT_VM}/rsrc:module:virtual_bus"
+      value: "/agent:${TA_IUT_VM}/module:virtual_bus"
+    - oid: "/agent:${TA_IUT_VM}/rsrc:module:sfc_driverlink"
+      value: "/agent:${TA_IUT_VM}/module:sfc_driverlink"
+    - oid: "/agent:${TA_IUT_VM}/rsrc:module:sfc"
+      value: "/agent:${TA_IUT_VM}/module:sfc"
+
+- set:
+    - oid: "/agent:${TA_IUT_VM}/module:nf_flow_table/loaded:"
+      value: 1
+    - oid: "/agent:${TA_IUT_VM}/module:pps_core/loaded:"
+      value: 1
+    - oid: "/agent:${TA_IUT_VM}/module:ptp/loaded:"
+      value: 1
+    - oid: "/agent:${TA_IUT_VM}/module:mtd/loaded:"
+      value: 1
+    - oid: "/agent:${TA_IUT_VM}/module:mdio/loaded:"
+      value: 1
+    - oid: "/agent:${TA_IUT_VM}/module:virtual_bus/loaded:"
+      value: 1
+    - oid: "/agent:${TA_IUT_VM}/module:sfc_driverlink/loaded:"
+      value: 1
+    - oid: "/agent:${TA_IUT_VM}/module:sfc/loaded:"
+      value: 1
+
+- add:
+    - oid: "/net:net1"
+    - oid: "/net:net1/node:A"
+      value: "/agent:${TA_IUT_VM}/hardware:/pci:/vendor:${IUT_PCI_VF_VENDOR}/device:${IUT_PCI_VF_DEVICE}/instance:0"
+    - oid: "/net:net1/node:B"
+      value: "/agent:${TA_TST}/interface:${IF_TST}"
+
+- set:
+    - oid: "/net:net1/node:A/type:"
+      value: 1
+    - oid: "/net:net1/node:B/type:"
+      value: 0

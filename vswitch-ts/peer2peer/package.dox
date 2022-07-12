@@ -1,0 +1,18 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved. */
+/**
+
+@defgroup peer2peer Simple tests with two peers involved
+@ingroup vswitch
+@{
+
+Write description HERE.
+
+@author Andrew Rybchenko <Andrew.Rybchenko@oktetlabs.ru>
+
+@par Tests:
+
+
+@} vswitch
+
+*/

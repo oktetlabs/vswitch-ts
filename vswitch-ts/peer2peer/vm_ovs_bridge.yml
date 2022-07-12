@@ -1,0 +1,59 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Add VM over OVS bridge to peer-to-peer IUT-tester network
+#
+# Parameters:
+#   TA_IUT          test agent with IUT interface
+#   IF_IUT          IUT interface name
+#   TA_TST          test agent with tester interface
+#   IF_TST          tester interface name
+#   VM_IUT          VM on IUT
+#   VM_TEMPLATE     VM tempalte with VM and corresponding RCF settigns
+#   TA_IUT_VM       test agent name to run on IUT VM
+#   MTU             MTU to be set on interfaces used to generate test traffic
+#   OLD_NET         Old configuration network name to be deleted
+
+- include:
+    - inc.iut_vm_tap.yml
+
+- set:
+    - oid: "/agent:${TA_IUT}/ovs:/status:"
+      value: 1
+
+- add:
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut"
+      value: "system"
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut/port:${IF_IUT}"
+      value: ""
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut/port:tap-${VM_IUT}"
+      value: ""
+    - oid: "/agent:${TA_IUT}/rsrc:br-iut"
+      value: "/agent:${TA_IUT}/interface:br-iut"
+
+- set:
+    - oid: "/agent:${TA_IUT}/interface:${IF_IUT}/mtu:"
+      value: "${MTU}"
+    - oid: "/agent:${TA_TST}/interface:${IF_TST}/mtu:"
+      value: "${MTU}"
+
+- set:
+    - oid: "/agent:${TA_IUT}/interface:tap-${VM_IUT}/status:"
+      value: 1
+
+# Substitute test network with a new one
+- delete:
+    - oid: "/net:${OLD_NET}"
+
+- add:
+    - oid: "/net:net1"
+    - oid: "/net:net1/node:A"
+      value: "/agent:${TA_IUT_VM}/hardware:/pci:/vendor:1af4/device:1000/instance:0"
+    - oid: "/net:net1/node:B"
+      value: "/agent:${TA_TST}/interface:${IF_TST}"
+
+- set:
+    - oid: "/net:net1/node:A/type:"
+      value: 1
+    - oid: "/net:net1/node:B/type:"
+      value: 0

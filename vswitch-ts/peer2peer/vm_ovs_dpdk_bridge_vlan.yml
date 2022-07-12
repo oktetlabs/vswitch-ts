@@ -1,0 +1,84 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Add VM over OVS bridge (with DPDK) over VLAN to peer-to-peer IUT-tester network
+#
+# Parameters:
+#   TA_IUT          test agent with IUT interface
+#   IF_IUT          IUT device PCI address
+#   TA_TST          test agent with tester interface
+#   IF_TST          tester interface name
+#   VM_IUT          VM on IUT
+#   VM_TEMPLATE     VM tempalte with VM and corresponding RCF settigns
+#   TA_IUT_VM       test agent name to run on IUT VM
+#   VLAN_ID         VLAN identifier to use
+#   MTU             MTU to be set on interfaces used to generate test traffic
+#   OLD_NET         Old configuration network name to be deleted
+
+- get:
+    - oid: "/agent:${TA_IUT}/dir:"
+      value: TA_IUT_RUNDIR
+
+- set:
+    - oid: "/agent:${TA_IUT}/ovs:/dpdk_init:"
+      value: 1
+    - oid: "/agent:${TA_IUT}/ovs:/status:"
+      value: 1
+
+- add:
+    - oid: "/agent:${TA_IUT}/ovs:/interface:vhost-pci"
+      value: "dpdk"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:vhost-user"
+      value: "dpdkvhostuserclient"
+
+- set:
+    - oid: "/agent:${TA_IUT}/ovs:/interface:vhost-pci/dpdk_devargs:"
+      value: "${IF_IUT}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:vhost-user/vhost_server_path:"
+      value: "${TA_IUT_RUNDIR}/vhost-user.sock"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:vhost-pci/mtu:"
+      value: "${MTU}"
+    - oid: "/agent:${TA_IUT}/ovs:/interface:vhost-user/mtu:"
+      value: "${MTU}"
+    - oid: "/agent:${TA_TST}/interface:${IF_TST}/mtu:"
+      value: "${MTU}"
+
+- add:
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut"
+      value: "netdev"
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut/port:vhost-pci"
+      value: ""
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut/port:vhost-user"
+      value: ""
+    - oid: "/agent:${TA_IUT}/rsrc:br-iut"
+      value: "/agent:${TA_IUT}/interface:br-iut"
+
+- set:
+    - oid: "/agent:${TA_IUT}/ovs:/bridge:br-iut/port:vhost-user/vlan:/tag:"
+      value: "${VLAN_ID}"
+
+- include:
+    - inc.iut_vm_vhost_user.yml
+
+- add:
+    - oid: "/agent:${TA_TST}/interface:${IF_TST}/vlans:${VLAN_ID}"
+      value: "${IF_TST}.${VLAN_ID}"
+    - oid: "/agent:${TA_TST}/rsrc:${IF_TST}.${VLAN_ID}"
+      value: "/agent:${TA_TST}/interface:${IF_TST}.${VLAN_ID}"
+
+# Substitute test network with a new one
+- delete:
+    - oid: "/net:${OLD_NET}"
+
+- add:
+    - oid: "/net:net1"
+    - oid: "/net:net1/node:A"
+      value: "/agent:${TA_IUT_VM}/hardware:/pci:/vendor:1af4/device:1000/instance:0"
+    - oid: "/net:net1/node:B"
+      value: "/agent:${TA_TST}/interface:${IF_TST}.${VLAN_ID}"
+
+- set:
+    - oid: "/net:net1/node:A/type:"
+      value: 1
+    - oid: "/net:net1/node:B/type:"
+      value: 0

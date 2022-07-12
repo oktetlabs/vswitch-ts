@@ -1,0 +1,55 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Add VM over OVS bridge (with DPDK) to peer-to-peer IUT-tester network
+#
+# Parameters:
+#   TA_IUT          test agent with IUT interface
+#   IF_IUT          IUT interface name
+#   IF_IUT_TNL      Tunnel interface to be created on IUT
+#   TA_TST          test agent with tester interface
+#   IF_TST          tester interface name
+#   IF_TST_TNL      Tunnel interface to be created on tester
+#   VNI             Virtual network identifier
+#   TNL_IUT_LOCAL   Tunnel local address on IUT side
+#                   (equal to TNL_TST_REMOTE by default)
+#   TNL_IUT_REMOTE  Tunnel remote address on IUT side
+#   TNL_TST_LOCAL   Tunnel local address on tester side
+#                   (equal to TNL_IUT_REMOTE by default)
+#   TNL_TST_REMOTE  Tunnel remote address on tester side
+#   MTU             MTU to be set on interfaces used to generate test traffic
+#   TNL_LOWER_MTU   MTU to be set on tunnel transport interfaces
+#   NET_PREFIX      Old configuration network prefix
+#   OLD_NET         Old configuration network name to be deleted
+
+- add:
+    - oid: "/local:/env:IF_IUT_TNL_TYPE"
+      value: vxlan
+
+- get:
+    - oid: "/agent:${TA_IUT}/dir:"
+      value: TA_IUT_RUNDIR
+    - oid: "/local:/env:IF_IUT_TNL_TYPE"
+      value: IF_IUT_TNL_TYPE
+
+- include:
+    - inc.iut_ovs_dpdk_bridge_tunnel.yml
+    - inc.iut_vm_vhost_user.yml
+    - inc.tst_system_vxlan.yml
+
+# Substitute test network with a new one
+- delete:
+    - oid: "/net:${OLD_NET}"
+
+- add:
+    - oid: "/net:net1"
+    - oid: "/net:net1/node:A"
+      value: "/agent:${TA_IUT_VM}/hardware:/pci:/vendor:1af4/device:1000/instance:0"
+    - oid: "/net:net1/node:B"
+      value: "/agent:${TA_TST}/interface:${IF_TST_TNL}"
+
+- set:
+    - oid: "/net:net1/node:A/type:"
+      value: 1
+    - oid: "/net:net1/node:B/type:"
+      value: 0

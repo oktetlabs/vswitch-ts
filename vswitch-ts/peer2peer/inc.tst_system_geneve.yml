@@ -1,0 +1,32 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Create GENEVE tunnel interface on tester
+#
+# Parameters:
+#   TA_TST          test agent with tester interface
+#   IF_TST_TNL      Tunnel interface to be created on tester
+#   TNL_TST_REMOTE  Tunnel remote address on tester side
+#   VNI             Virtual network identifier
+#   MTU             MTU to be set on interfaces used to generate test traffic
+#   TNL_LOWER_MTU   MTU to be set on tunnel transport interfaces
+
+- set:
+    - oid: "/agent:${TA_TST}/interface:${IF_TST}/mtu:"
+      value: "${TNL_LOWER_MTU}"
+
+- add:
+    - oid: "/agent:${TA_TST}/rsrc:${IF_TST_TNL}"
+      value: "/agent:${TA_TST}/interface:${IF_TST_TNL}"
+    - oid: "/agent:${TA_TST}/tunnel:/geneve:${IF_TST_TNL}"
+      value: 0
+
+- set:
+    - oid: "/agent:${TA_TST}/tunnel:/geneve:${IF_TST_TNL}/vni:"
+      value: "${VNI}"
+    - oid: "/agent:${TA_TST}/tunnel:/geneve:${IF_TST_TNL}/remote:"
+      value: "${TNL_TST_REMOTE}"
+    - oid: "/agent:${TA_TST}/tunnel:/geneve:${IF_TST_TNL}"
+      value: 1
+    - oid: "/agent:${TA_TST}/interface:${IF_TST_TNL}/mtu:"
+      value: "${MTU}"

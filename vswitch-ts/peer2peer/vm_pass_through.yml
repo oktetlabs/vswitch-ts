@@ -1,0 +1,92 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Add VM to peer-to-peer IUT-tester network
+#
+# Parameters:
+#   TA_IUT          test agent with IUT interface
+#   IF_IUT_PCI      IUT interface PCI address
+#   IF_IUT_DRIVER   IUT interface driver
+#   TA_TST          test agent with tester interface
+#   IF_TST          tester interface name
+#   VM_IUT          VM on IUT
+#   VM_TEMPLATE     VM tempalte with VM and corresponding RCF settigns
+#   TA_IUT_VM       test agent name to run on IUT VM
+#   MTU             MTU to be set on interfaces used to generate test traffic
+#   OLD_NET         Old configuration network name to be deleted
+
+- get:
+    - oid: "/agent:${TA_IUT}/hardware:/pci:/device:${IF_IUT_PCI}/vendor_id:"
+      value: IF_IUT_VENDOR
+    - oid: "/agent:${TA_IUT}/hardware:/pci:/device:${IF_IUT_PCI}/device_id:"
+      value: IF_IUT_DEVICE
+
+# FIXME: Interfaces placeholders prepared by template must be either set or removed
+- delete:
+    - oid: "/local:/vm:${VM_TEMPLATE}/template:/net:net0"
+
+- copy:
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}"
+      value: "/local:/vm:${VM_TEMPLATE}/template:"
+
+- add:
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/pci_pt:iut_fn"
+      value: "${IF_IUT_PCI}"
+- set:
+    - oid: "/agent:${TA_IUT}/hardware:/pci:/device:${IF_IUT_PCI}/driver:"
+      value: "vfio-pci"
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/status:"
+      value: 1
+
+- get:
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/ssh_port:/host:"
+      value: VM_IUT_SSH_PORT
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/rcf_port:"
+      value: VM_IUT_RCF_PORT
+
+- copy:
+    - oid: "/rcf:/agent:${TA_IUT_VM}"
+      value: "/local:/vm:${VM_TEMPLATE}/rcf:"
+
+- add:
+    - oid: "/rcf:/agent:${TA_IUT_VM}/conf:port"
+      value: "${VM_IUT_RCF_PORT}"
+    - oid: "/rcf:/agent:${TA_IUT_VM}/conf:ssh_proxy"
+      value: "${TE_IUT}"
+    - oid: "/rcf:/agent:${TA_IUT_VM}/conf:ssh_port"
+      value: "${VM_IUT_SSH_PORT}"
+
+- set:
+    - oid: "/rcf:/agent:${TA_IUT_VM}/status:"
+      value: 1
+
+# Configure added TA
+- set:
+    - oid: "/agent:${TA_IUT_VM}/rpcprovider:"
+      value: "ta_rpcs"
+
+# Substitute test network with a new one over VLANs
+- delete:
+    - oid: "/net:${OLD_NET}"
+
+- add:
+    - oid: "/net:net1"
+    - oid: "/net:net1/node:A"
+      value: "/agent:${TA_IUT_VM}/hardware:/pci:/vendor:${IF_IUT_VENDOR}/device:${IF_IUT_DEVICE}/instance:0"
+    - oid: "/net:net1/node:B"
+      value: "/agent:${TA_TST}/interface:${IF_TST}"
+
+- set:
+    - oid: "/net:net1/node:A/type:"
+      value: 1
+    - oid: "/net:net1/node:B/type:"
+      value: 0
+
+- add:
+    - oid: "/agent:${TA_IUT_VM}/rsrc:module:${IF_IUT_DRIVER}"
+      value: "/agent:${TA_IUT_VM}/module:${IF_IUT_DRIVER}"
+    - oid: "/agent:${TA_IUT_VM}/module:${IF_IUT_DRIVER}"
+
+- set:
+    - oid: "/agent:${TA_IUT_VM}/module:${IF_IUT_DRIVER}/loaded:"
+      value: 1

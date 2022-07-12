@@ -1,0 +1,58 @@
+---
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+# Add GENEVE over peer-to-peer IUT-tester network
+#
+# Parameters:
+#   TA_IUT          test agent with IUT interface
+#   IF_IUT          IUT interface name
+#   IF_IUT_TNL      Tunnel interface to be created on IUT
+#   TA_TST          test agent with tester interface
+#   IF_TST          tester interface name
+#   IF_TST_TNL      Tunnel interface to be created on tester
+#   VNI             Virtial network identifier
+#   TNL_IUT_REMOTE  Tunnel remote address on IUT side
+#   TNL_TST_REMOTE  Tunnel remote address on tester side
+#   TNL_LOWER_MTU   MTU to be set on tunnel transport interfaces
+#   MTU             MTU to be set on interfaces used to generate test traffic
+#   OLD_NET         Old configuration network name to be deleted
+
+- set:
+    - oid: "/agent:${TA_IUT}/interface:${IF_IUT}/mtu:"
+      value: "${TNL_LOWER_MTU}"
+
+- add:
+    - oid: "/agent:${TA_IUT}/rsrc:${IF_IUT_TNL}"
+      value: "/agent:${TA_IUT}/interface:${IF_IUT_TNL}"
+    - oid: "/agent:${TA_IUT}/tunnel:/geneve:${IF_IUT_TNL}"
+      value: 0
+
+- set:
+    - oid: "/agent:${TA_IUT}/tunnel:/geneve:${IF_IUT_TNL}/vni:"
+      value: "${VNI}"
+    - oid: "/agent:${TA_IUT}/tunnel:/geneve:${IF_IUT_TNL}/remote:"
+      value: "${TNL_IUT_REMOTE}"
+    - oid: "/agent:${TA_IUT}/tunnel:/geneve:${IF_IUT_TNL}"
+      value: 1
+    - oid: "/agent:${TA_IUT}/interface:${IF_IUT_TNL}/mtu:"
+      value: "${MTU}"
+
+- include:
+    - inc.tst_system_geneve.yml
+
+# Substitute test network with a new one over VLANs
+- delete:
+    - oid: "/net:${OLD_NET}"
+
+- add:
+    - oid: "/net:net1"
+    - oid: "/net:net1/node:A"
+      value: "/agent:${TA_IUT}/interface:${IF_IUT_TNL}"
+    - oid: "/net:net1/node:B"
+      value: "/agent:${TA_TST}/interface:${IF_TST_TNL}"
+
+- set:
+    - oid: "/net:net1/node:A/type:"
+      value: 1
+    - oid: "/net:net1/node:B/type:"
+      value: 0

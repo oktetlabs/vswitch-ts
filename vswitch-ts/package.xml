@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved. -->
+<package version="1.0">
+
+    <description>vSwitch Test Suite</description>
+
+    <author mailto="Andrew.Rybchenko@oktetlabs.ru"/>
+
+    <session track_conf="silent">
+
+        <enum name="vm_os.all" global="true">
+            <value reqs="CENTOS,CENTOS7">centos7</value>
+            <value reqs="CENTOS,CENTOS8">centos8</value>
+            <value reqs="DEBIAN,DEBIAN9">debian9</value>
+            <value reqs="DEBIAN,DEBIAN10">debian10</value>
+            <value reqs="DEBIAN,DEBIAN11">debian11</value>
+            <value reqs="FEDORA,FEDORA32">fedora32</value>
+            <value reqs="FEDORA,FEDORA33">fedora33</value>
+            <value reqs="RHEL,RHEL7">rhel7</value>
+            <value reqs="RHEL,RHEL8">rhel8</value>
+            <value reqs="UBUNTU,UBUNTU18_04">ubuntu18_04</value>
+            <value reqs="UBUNTU,UBUNTU20_04">ubuntu20_04</value>
+        </enum>
+
+        <prologue>
+            <script name="prologue"/>
+        </prologue>
+
+        <run>
+            <package name="peer2peer"/>
+            <arg name="config">
+                <value> </value>
+                <value reqs="VLAN">vlan.yml</value>
+                <value reqs="VXLAN">vxlan.yml</value>
+                <value reqs="GENEVE">geneve.yml</value>
+                <value reqs="OVS">ovs_bridge.yml</value>
+            </arg>
+            <arg name="with_dpdk" value="FALSE"/>
+            <arg name="vm_os" value=""/>
+        </run>
+        <run name="peer2peer_ovs_repr">
+            <package name="peer2peer"/>
+            <arg name="config">
+                <value reqs="OVS,DPDK,REPRESENTOR">ovs_dpdk_rep_bridge.yml</value>
+            </arg>
+            <arg name="with_dpdk" value="TRUE"/>
+            <arg name="vm_os" value=""/>
+        </run>
+        <run name="peer2peer_vm">
+            <package name="peer2peer"/>
+            <arg name="config" list="config_with_dpdk">
+                <value>vm_pass_through.yml</value>
+                <value reqs="VM,BRIDGE,TAP_VHOST">vm.yml</value>
+                <value reqs="VM,OVS,TAP_VHOST">vm_ovs_bridge.yml</value>
+                <value reqs="VM,OVS,TAP_VHOST,VLAN">vm_ovs_bridge_vlan.yml</value>
+                <value reqs="VM,OVS,TAP_VHOST,VXLAN">vm_ovs_bridge_vxlan.yml</value>
+                <value reqs="VM,OVS,TAP_VHOST,GENEVE">vm_ovs_bridge_geneve.yml</value>
+                <value reqs="VM,OVS,VHOST_USER">vm_ovs_dpdk_bridge.yml</value>
+                <value reqs="VM,OVS,VHOST_USER,VLAN">vm_ovs_dpdk_bridge_vlan.yml</value>
+                <value reqs="VM,OVS,VHOST_USER,VXLAN">vm_ovs_dpdk_bridge_vxlan.yml</value>
+                <value reqs="VM,OVS,VHOST_USER,GENEVE">vm_ovs_dpdk_bridge_geneve.yml</value>
+            </arg>
+            <arg name="with_dpdk" list="config_with_dpdk">
+                <value>FALSE</value>
+                <value>FALSE</value>
+                <value>FALSE</value>
+                <value>FALSE</value>
+                <value>FALSE</value>
+                <value>FALSE</value>
+                <value reqs="DPDK">TRUE</value>
+                <value reqs="DPDK">TRUE</value>
+                <value reqs="DPDK">TRUE</value>
+                <value reqs="DPDK">TRUE</value>
+            </arg>
+            <arg name="vm_os" type="vm_os.all"/>
+        </run>
+        <run name="peer2peer_ovs_repr_vm">
+            <package name="peer2peer"/>
+            <arg name="config">
+                <value reqs="VM,OVS,DPDK,REPRESENTOR">vm_ovs_dpdk_rep_bridge.yml</value>
+            </arg>
+            <arg name="with_dpdk" value="TRUE"/>
+            <arg name="vm_os" type="vm_os.all"/>
+        </run>
+
+    </session>
+</package>

@@ -1,0 +1,72 @@
+# SPDX-License-Identifier: Apache-2.0
+# (c) Copyright 2016 - 2022 Xilinx, Inc. All rights reserved.
+#
+# List of all supported TA types
+#
+TE_TA_DISTROS=
+TE_TA_DISTROS+=" x86_64_centos7"
+TE_TA_DISTROS+=" x86_64_centos8"
+TE_TA_DISTROS+=" x86_64_debian9"
+TE_TA_DISTROS+=" x86_64_debian10"
+TE_TA_DISTROS+=" x86_64_debian11"
+TE_TA_DISTROS+=" x86_64_fedora32"
+TE_TA_DISTROS+=" x86_64_fedora33"
+TE_TA_DISTROS+=" x86_64_rhel7"
+TE_TA_DISTROS+=" x86_64_rhel8"
+TE_TA_DISTROS+=" x86_64_ubuntu18_04"
+TE_TA_DISTROS+=" x86_64_ubuntu20_04"
+
+#
+# Prioritized list of TA types fallbacks
+#
+TE_TA_x86_64_debian10_FALLBACK="x86_64_debian9"
+TE_TA_x86_64_debian11_FALLBACK="x86_64_debian10 x86_64_debian9"
+TE_TA_x86_64_fedora33_FALLBACK="x86_64_fedora32"
+TE_TA_x86_64_rhel7_FALLBACK="x86_64_centos7"
+TE_TA_x86_64_rhel8_FALLBACK="x86_64_centos8"
+TE_TA_x86_64_ubuntu18_04_FALLBACK="x86_64_debian9"
+TE_TA_x86_64_ubuntu20_04_FALLBACK="x86_64_debian10"
+
+SSH_CMD="ssh -qxT -o BatchMode=yes -o StrictHostKeyChecking=no"
+
+function process_build_hosts () {
+    local distro
+
+    for distro in ${TE_TA_DISTROS} ; do
+        local build_host_var="TE_TA_${distro}_BUILD_HOST"
+        local ta_type_var="TE_TA_${distro}_TA_TYPE"
+        local ta_type_fallback="TE_TA_${distro}_FALLBACK"
+        local ta_kernel_release="TE_TA_${distro}_KERNEL_RELEASE"
+        local ta_sfc_make_args="TE_TA_${distro}_SFC_MAKE_ARGS"
+
+        # If build host available for the distro, use it
+        if test -n "${!build_host_var}" ; then
+            local ta_type="linux_ta_${distro}"
+            local host_var="${ta_type}_HOST"
+            local ssh_var="${ta_type}_SSH"
+
+            export TE_TA_${distro}=true
+            export ${ta_type_var}="${ta_type}"
+            export ${host_var}="${!build_host_var}"
+            export ${ssh_var}="${SSH_CMD} ${!build_host_var}"
+            if test -n "${!ta_kernel_release}" ; then
+                local kpath="/lib/modules/${!ta_kernel_release}/build"
+
+                export ${ta_sfc_make_args}="KPATH=${kpath}"
+            fi
+        else
+            local fb
+
+            # Try to find fallback TA type for the distro
+            for fb in ${!ta_type_fallback} ; do
+                local ta_type_fb="TE_TA_${fb}_TA_TYPE"
+
+                test -n "${!ta_type_fb}" &&
+                    export ${ta_type_var}="${!ta_type_fb}" &&
+                    break
+            done
+        fi
+    done
+}
+
+process_build_hosts
