@@ -111,8 +111,19 @@ if test -z "${SF_TS_CONFDIR}" ; then
     export SF_TS_CONFDIR
 fi
 
+if test -z "${TS_RIGSDIR}" ; then
+    TS_RIGSDIR="${TS_TOPDIR}"/../ts-rigs
+    if [[ -d "${TS_RIGSDIR}" ]] ; then
+        TS_RIGSDIR="$(realpath "${TS_RIGSDIR}")"
+        echo "Guessed TS_RIGSDIR=${TS_RIGSDIR}"
+        export TS_RIGSDIR
+    else
+        unset TS_RIGSDIR
+    fi
+fi
+
 MY_OPTS=
-MY_OPTS="${MY_OPTS} --conf-dirs=\"${TS_TOPDIR}/conf:${SF_TS_CONFDIR}\""
+MY_OPTS="${MY_OPTS} --conf-dirs=\"${TS_TOPDIR}/conf:${TS_RIGSDIR}${TS_RIGSDIR:+:}${SF_TS_CONFDIR}\""
 
 test -e "${TS_TOPDIR}/trc/top.xml" &&
     MY_OPTS="${MY_OPTS} --trc-db=\"${TS_TOPDIR}\"/trc/top.xml"
