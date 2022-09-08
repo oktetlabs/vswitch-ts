@@ -56,7 +56,7 @@ function process_cfg() {
     fi
     RUN_OPTS="${RUN_OPTS} --opts=run/\"${run_conf}\""
     test -z "${cfg_mod}" ||
-        RUN_OPTS="${RUN_OPTS} --script=env/${cfg_mod}"
+        RUN_OPTS="${RUN_OPTS} --script=scripts/only-${cfg_mod}"
     # Add test suite default options after configuration specifics
     RUN_OPTS="${RUN_OPTS} --opts=opts.ts"
 }
