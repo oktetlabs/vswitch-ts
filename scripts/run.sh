@@ -10,6 +10,18 @@
 RUNDIR="$(pwd -P)"
 export TS_TOPDIR="$(cd "$(dirname "$(which "$0")")"/.. ; pwd -P)"
 
+source "${TE_BASE}/scripts/lib"
+source "${TE_BASE}/scripts/lib.grab_cfg"
+
+if [[ -n "${TS_RIGSDIR}" ]] ; then
+    source "${TS_RIGSDIR}/scripts/lib/grab_cfg_handlers"
+fi
+
+cleanup() {
+    call_if_defined grab_cfg_release
+}
+trap "cleanup" EXIT
+
 run_fail() {
     echo $* >&2
     exit 1
@@ -31,8 +43,13 @@ cat <<EOF
 USAGE: run.sh [run.sh options] [dispatcher.sh options]
 Options:
   --cfg=<CFG>               Configuration to be used
-  --steal-cfg               Steal the configuration even if it is owned by
-                            someone else
+
+EOF
+
+    call_if_defined grab_cfg_print_help
+
+    cat <<EOF
+
   --reuse-pco               Do not restart RPC servers and re-init EAL in each test
                             (it makes testing significantly faster)
 
@@ -46,7 +63,7 @@ function process_cfg() {
     local run_conf
     local cfg_mod
 
-    "${TS_TOPDIR}"/scripts/check_cfg "${cfg}" "" ${STEAL_CFG} || exit 1
+    call_if_defined grab_cfg_process "${cfg}" || exit 1
     if test "${cfg}" != "${cfg%-p[0-9]}" ; then
         run_conf="${cfg%-p[0-9]}"
         cfg_mod="${cfg#${run_conf}-}"
@@ -64,15 +81,17 @@ function process_cfg() {
 CFG=
 
 for opt ; do
+    if call_if_defined grab_cfg_check_opt "${opt}" ; then
+        shift 1
+        continue
+    fi
+
     case "${opt}" in
         --help) usage ;;
         --cfg=*)
             test -z "${CFG}" ||
                 run_fail "Configuration is specified twice: ${CFG} vs ${opt#--cfg=}"
             CFG="${opt#--cfg=}"
-            ;;
-        --steal-cfg)
-            STEAL_CFG=steal
             ;;
         --reuse-pco)
             export TE_ENV_REUSE_PCO=yes
@@ -151,10 +170,6 @@ rm -f trc-brief.html
 
 eval "${TE_BASE}/dispatcher.sh ${MY_OPTS} ${RUN_OPTS}"
 RESULT=$?
-
-if test -n "${STEAL_CFG}" -a -n "${CFG}" ; then
-    "${TS_TOPDIR}"/scripts/check_cfg "${CFG}" "-" "${STEAL_CFG}"
-fi
 
 if test ${RESULT} -ne 0 ; then
     echo FAIL
