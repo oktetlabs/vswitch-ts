@@ -13,7 +13,7 @@ export TS_TOPDIR="$(cd "$(dirname "$(which "$0")")"/.. ; pwd -P)"
 source "${TE_BASE}/scripts/lib"
 source "${TE_BASE}/scripts/lib.grab_cfg"
 
-if [[ -n "${TE_TS_RIGSDIR}" ]] ; then
+if [[ -e "${TE_TS_RIGSDIR}/scripts/lib/grab_cfg_handlers" ]] ; then
     source "${TE_TS_RIGSDIR}/scripts/lib/grab_cfg_handlers"
 fi
 
