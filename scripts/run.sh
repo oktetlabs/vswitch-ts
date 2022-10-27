@@ -13,8 +13,8 @@ export TS_TOPDIR="$(cd "$(dirname "$(which "$0")")"/.. ; pwd -P)"
 source "${TE_BASE}/scripts/lib"
 source "${TE_BASE}/scripts/lib.grab_cfg"
 
-if [[ -n "${TS_RIGSDIR}" ]] ; then
-    source "${TS_RIGSDIR}/scripts/lib/grab_cfg_handlers"
+if [[ -n "${TE_TS_RIGSDIR}" ]] ; then
+    source "${TE_TS_RIGSDIR}/scripts/lib/grab_cfg_handlers"
 fi
 
 cleanup() {
@@ -130,19 +130,19 @@ if test -z "${SF_TS_CONFDIR}" ; then
     export SF_TS_CONFDIR
 fi
 
-if test -z "${TS_RIGSDIR}" ; then
-    TS_RIGSDIR="${TS_TOPDIR}"/../ts-rigs
-    if [[ -d "${TS_RIGSDIR}" ]] ; then
-        TS_RIGSDIR="$(realpath "${TS_RIGSDIR}")"
-        echo "Guessed TS_RIGSDIR=${TS_RIGSDIR}"
-        export TS_RIGSDIR
+if test -z "${TE_TS_RIGSDIR}" ; then
+    TE_TS_RIGSDIR="${TS_TOPDIR}"/../ts-rigs
+    if [[ -d "${TE_TS_RIGSDIR}" ]] ; then
+        TE_TS_RIGSDIR="$(realpath "${TE_TS_RIGSDIR}")"
+        echo "Guessed TE_TS_RIGSDIR=${TE_TS_RIGSDIR}"
+        export TE_TS_RIGSDIR
     else
-        unset TS_RIGSDIR
+        unset TE_TS_RIGSDIR
     fi
 fi
 
 MY_OPTS=
-MY_OPTS="${MY_OPTS} --conf-dirs=\"${TS_TOPDIR}/conf:${TS_RIGSDIR}${TS_RIGSDIR:+:}${SF_TS_CONFDIR}\""
+MY_OPTS="${MY_OPTS} --conf-dirs=\"${TS_TOPDIR}/conf:${TE_TS_RIGSDIR}${TE_TS_RIGSDIR:+:}${SF_TS_CONFDIR}\""
 
 test -e "${TS_TOPDIR}/trc/top.xml" &&
     MY_OPTS="${MY_OPTS} --trc-db=\"${TS_TOPDIR}\"/trc/top.xml"
