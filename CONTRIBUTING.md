@@ -59,9 +59,10 @@ The summary line should:
     - `conf` (for generic changes in configuration files)
     - `doc`
     - `scripts`
-    - `trc`
-    - `peer2peer` (for changes in tests of a specific package)
-    - `peer2peer/udp_conn` (for changes in a specific test)
+    - `peer2peer` (for changes related to a specific package)
+    - `peer2peer/udp_conn` (for changes related to a specific test)
+      - **Note:** changes to TRC, package.xml and other similar files
+                  should be attributed to the relevant package/test
  - start with the imperative of a verb, for example:
 
    ```
