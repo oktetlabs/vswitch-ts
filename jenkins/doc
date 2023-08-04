@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (C) 2023 OKTET Labs Ltd. All rights reserved.
+//
+// Building test suite documentation.
+
+@Library('teLib') _
+
+teTsDocPipeline {
+    label = 'vswitch-ts-doc'
+    ts_name = 'vswitch-ts'
+    tsconf = true
+    doxyrest = false
+
+    buildDocHook = {
+        dir("${ts_name}") {
+            sh "./scripts/gen_doxygen"
+        }
+    }
+
+    triggersProvider = {
+        def triggers = []
+
+        if (params.get_revs_from) {
+            triggers += teCommon.jobs_triggers(params.get_revs_from)
+        }
+
+        return triggers
+    }
+
+    archiveDocHook = {
+        dir("${ts_name}") {
+            archiveArtifacts artifacts: "vswitch-ts/doc/html/**, doxygen.warn"
+        }
+    }
+}

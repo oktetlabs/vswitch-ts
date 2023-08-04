@@ -1,0 +1,50 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (C) 2023 OKTET Labs Ltd. All rights reserved.
+//
+// Main pipeline for running tests.
+
+@Library('teLib') _
+
+teTsPipeline {
+    specificParameters = [
+        booleanParam(name: 'reuse_pco', defaultValue: true,
+                     description: 'Reuse RPC server for different tests. It speeds up tests execution.'),
+    ]
+
+    label = 'vswitch-ts'
+    ts_name = 'vswitch-ts'
+
+    tsconf = true
+
+    optionsProvider = {
+        def opts = [
+            '--steal-cfg',
+            '--release-cfg',
+            '--tester-req=!BROKEN',
+        ]
+
+        if (params.reuse_pco) {
+            opts.add('--reuse-pco')
+        }
+
+        return opts
+    }
+
+    preRunHook = {
+        metas.REUSE_PCO = params.reuse_pco ? 'true' : 'false'
+
+        if (teCtx.DPDK_GIT_URL) {
+            teDPDK.checkout(ctx: teCtx)
+            env.RTE_SDK = teCtx.DPDK_SRC
+        }
+
+        if (teCtx.OVS_GIT_URL) {
+            teOVS.checkout(ctx: teCtx)
+        }
+
+    }
+
+    postAlwaysHook = {
+        teEmail.email_set_prefix(teCtx, "[CI VSWITCH-TS]")
+    }
+}

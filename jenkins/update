@@ -1,0 +1,49 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (C) 2023 OKTET Labs Ltd. All rights reserved.
+//
+// Pipeline to rebuild test suite after something changed in its
+// sources. This pipeline saves revisions in an artifact in case of
+// success, other pipelines use revisions from that artifact.
+
+@Library('teLib') _
+
+teTsPipeline {
+    label = 'vswitch-ts'
+    ts_name = 'vswitch-ts'
+
+    tsconf = true
+    sticky_repo_params = true
+
+    optionsProvider = {
+        return [
+            '--build-only',
+            '--no-grab-cfg',
+        ]
+    }
+
+    triggersProvider = {
+        def triggers = [
+            pollSCM('H * * * *'),
+        ]
+
+        if (params.get_revs_from) {
+            // If this job takes revisions from other update jobs,
+            // rebuild this job once new checked revision is available
+            // from there.
+            triggers += teCommon.jobs_triggers(params.get_revs_from)
+        }
+
+        return triggers
+    }
+
+    preRunHook = {
+        if (teCtx.DPDK_GIT_URL) {
+            teDPDK.checkout(ctx: teCtx)
+            env.RTE_SDK = teCtx.DPDK_SRC
+        }
+
+        if (teCtx.OVS_GIT_URL) {
+            teOVS.checkout(ctx: teCtx)
+        }
+    }
+}
