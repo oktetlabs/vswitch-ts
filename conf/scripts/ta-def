@@ -11,3 +11,10 @@ source "${TE_BASE}"/engine/builder/te_ta_ssh_helper
 : ${TS_TEST_AGENTS:=TE_IUT TE_IUT_SOC TE_TST1 TE_LOG_LISTENER}
 
 te_ta_list_detect_type_with_signature ${TS_TEST_AGENTS}
+
+# Unset unused agents to avoid issues with RCF when they
+# are defined for testing configuration but not built
+# for this test suite.
+unset TE_TST2
+unset TE_TST3
+unset TE_HYPERVISOR
