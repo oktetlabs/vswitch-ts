@@ -14,6 +14,7 @@ source "$(dirname "$(which "$0")")"/guess.sh
 
 source "${TE_BASE}/scripts/lib"
 source "${TE_BASE}/scripts/lib.grab_cfg"
+source "${TE_BASE}/scripts/lib.meta"
 
 if [[ -e "${TE_TS_RIGSDIR}/scripts/lib/grab_cfg_handlers" ]] ; then
     source "${TE_TS_RIGSDIR}/scripts/lib/grab_cfg_handlers"
@@ -43,6 +44,7 @@ EOF
 
   --reuse-pco               Do not restart RPC servers and re-init EAL in each test
                             (it makes testing significantly faster)
+  --no-meta                 Do not generate testing metadata
 
 EOF
 "${TE_BASE}"/dispatcher.sh --help
@@ -69,6 +71,7 @@ function process_cfg() {
     RUN_OPTS="${RUN_OPTS} --opts=opts.ts"
 }
 
+TE_RUN_META=yes
 CFG=
 
 for opt ; do
@@ -87,10 +90,28 @@ for opt ; do
         --reuse-pco)
             export TE_ENV_REUSE_PCO=yes
             ;;
+        --no-meta)
+            TE_RUN_META=no
+            RUN_OPTS+="${RUN_OPTS} --no-meta"
+            ;;
         *)  RUN_OPTS="${RUN_OPTS} \"${opt}\"" ;;
     esac
     shift 1
 done
+
+if [[ "${TE_RUN_META}" = "yes" ]] ; then
+    te_meta_test_suite "vswitch-ts"
+
+    te_meta_set CFG "${CFG}"
+    te_meta_set_git "${SF_TS_CONFDIR}" TSCONF
+
+    if [[ -n "${RTE_SDK}" ]] ; then
+        te_meta_set_git "${RTE_SDK}" DPDK
+    fi
+    if [[ -n "${OVS_SRC}" ]] ; then
+        te_meta_set_git "${OVS_SRC}" OVS
+    fi
+fi
 
 if test -n "${CFG}" ; then
     process_cfg ${CFG}
