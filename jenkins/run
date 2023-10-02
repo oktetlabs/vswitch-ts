@@ -33,8 +33,6 @@ teTsPipeline {
     }
 
     preRunHook = {
-        metas.REUSE_PCO = params.reuse_pco ? 'true' : 'false'
-
         if (teCtx.DPDK_GIT_URL) {
             teDPDK.checkout(ctx: teCtx)
             env.RTE_SDK = teCtx.DPDK_SRC
@@ -43,7 +41,6 @@ teTsPipeline {
         if (teCtx.OVS_GIT_URL) {
             teOVS.checkout(ctx: teCtx)
         }
-
     }
 
     postAlwaysHook = {
