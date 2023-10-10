@@ -7,9 +7,6 @@
 # Author: Andrew Rybchenko <Andrew.Rybchenko@oktetlabs.ru>
 #
 
-RUNDIR="$(pwd -P)"
-export TS_TOPDIR="$(cd "$(dirname "$(which "$0")")"/.. ; pwd -P)"
-
 source "$(dirname "$(which "$0")")"/guess.sh
 
 source "${TE_BASE}/scripts/lib"
@@ -45,6 +42,7 @@ EOF
   --reuse-pco               Do not restart RPC servers and re-init EAL in each test
                             (it makes testing significantly faster)
   --no-meta                 Do not generate testing metadata
+  --publish                 Publish testing logs to Bublik
 
 EOF
 "${TE_BASE}"/dispatcher.sh --help
@@ -93,6 +91,11 @@ for opt ; do
         --no-meta)
             TE_RUN_META=no
             RUN_OPTS+="${RUN_OPTS} --no-meta"
+            ;;
+        --publish)
+            source "${TE_TS_RIGSDIR}/scripts/publish_logs/ts_publish"
+            pscript="$(tsrigs_publish_get vswitch-ts)"
+            RUN_OPTS="${RUN_OPTS} --publish=\"${pscript}\""
             ;;
         *)  RUN_OPTS="${RUN_OPTS} \"${opt}\"" ;;
     esac

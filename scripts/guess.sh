@@ -6,6 +6,9 @@ fail() {
     exit 1
 }
 
+RUNDIR="$(pwd -P)"
+export TS_TOPDIR="$(cd "$(dirname "$(which "$0")")"/.. || exit 1; pwd -P)"
+
 if test -z "${TE_BASE}" ; then
     if test -e dispatcher.sh ; then
         export TE_BASE="${RUNDIR}"
@@ -27,6 +30,16 @@ if test -z "${TE_BUILD}" ; then
     fi
     export TE_BUILD
 fi
+
+if test -z "${TE_INSTALL}" ; then
+    TE_INSTALL="${TE_BUILD}"/inst
+    export TE_INSTALL
+fi
+
+PATH="${PATH}:${TE_INSTALL}/default/bin"
+export PATH
+LD_LIBRARY_PATH="${TE_INSTALL}/default/lib:${LD_LIBRARY_PATH}"
+export LD_LIBRARY_PATH
 
 if test -z "${SF_TS_CONFDIR}" ; then
     SF_TS_CONFDIR="${TS_TOPDIR}"/../conf
