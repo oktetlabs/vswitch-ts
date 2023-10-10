@@ -96,10 +96,10 @@ main(int argc, char *argv[])
     tapi_cpu_index_t                        cpu_id;
 
     tapi_job_sched_affinity_param sched_affinity_param = { .cpu_ids_len = 1 };
-    tapi_job_sched_param sched_param[] = {
-        { .type = TAPI_JOB_SCHED_AFFINITY,
+    tapi_job_exec_param exec_param[] = {
+        { .type = TAPI_JOB_EXEC_AFFINITY,
           .data = (void *)&sched_affinity_param },
-        { .type = TAPI_JOB_SCHED_END,
+        { .type = TAPI_JOB_EXEC_END,
           .data = NULL }
     };
     int cpu_id_val;
@@ -175,8 +175,8 @@ main(int argc, char *argv[])
 
         cpu_id_val = cpu_id.package_id;
         sched_affinity_param.cpu_ids = &cpu_id_val;
-        CHECK_RC(tapi_job_add_sched_param(perf_clients[i]->app.job,
-                                          sched_param));
+        CHECK_RC(tapi_job_add_exec_param(perf_clients[i]->app.job,
+                                         exec_param));
 
         CHECK_RC(tapi_perf_client_start(perf_clients[i]));
     }
