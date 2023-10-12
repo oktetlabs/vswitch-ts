@@ -49,12 +49,17 @@ foreach lib : te_libs
     test_deps += cc.find_library(lib, dirs: te_libdir)
 endforeach
 
+# The line below would produce empty dependencies on systems
+# having no tirpc - it is not a problem.
+dep_tirpc = dependency('libtirpc', required: false)
+
 lib_dir = include_directories('lib')
 
 subdir('lib')
 
 test_deps += declare_dependency(include_directories: lib_dir,
                                 link_with: [ tslib ])
+test_deps += [ dep_tirpc ]
 
 tests = [ 'prologue' ]
 

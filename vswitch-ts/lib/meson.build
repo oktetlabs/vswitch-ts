@@ -4,4 +4,5 @@
 sources = [ 'vswitch_ts.c' ]
 
 tslib = static_library('ts_vswitch', sources,
-                       include_directories: lib_dir)
+                       include_directories: lib_dir,
+                       dependencies: dep_tirpc)
