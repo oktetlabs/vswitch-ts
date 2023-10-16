@@ -44,6 +44,7 @@ teTsPipeline {
 
         if (teCtx.OVS_GIT_URL) {
             teOVS.checkout(ctx: teCtx)
+            env.OVS_SRC = teCtx.OVS_SRC
         }
     }
 }
