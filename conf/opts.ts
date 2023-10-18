@@ -3,6 +3,7 @@
 --conf-cs=cs/vswitch-ts.yml
 --script=scripts/ta-def
 --script=script.ta-build
+--script=scripts/fix-ssh-keys-perm
 --conf-cs=cs.vm-tmpl.yml
 --script=scripts/defaults
 --script=scripts/dpdk-trc-tags
