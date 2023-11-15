@@ -181,7 +181,7 @@ main(int argc, char **argv)
     CHECK_RC(te_kvpair_add(&expand_vars, "IF_IUT_PCI", "%s",
                            iut_if_pci_info.pci_addr));
     CHECK_RC(te_kvpair_add(&expand_vars, "IF_IUT_DRIVER", "%s",
-                           iut_if_pci_info.ta_driver));
+                           iut_if_pci_info.net_driver));
     CHECK_RC(te_kvpair_add(&expand_vars, "TA_TST", "%s", tst_host->ta));
     CHECK_RC(te_kvpair_add(&expand_vars, "IF_TST", "%s", tst_if->if_name));
     CHECK_RC(te_kvpair_add(&expand_vars, "VLAN_ID", "%u", 5));
