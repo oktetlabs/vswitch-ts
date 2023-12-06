@@ -13,9 +13,12 @@
     - oid: "/agent:${TA_IUT}/vm:${VM_IUT}"
       value: "/local:/vm:${VM_TEMPLATE}/template:"
 
+- add:
+    - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/net:net0/netdev_opt:vhost"
+      value: on
 - set:
     - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/net:net0/type:"
-      value: tap-vhost
+      value: tap
     - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/net:net0/type_spec:"
       value: tap-${VM_IUT}
     - oid: "/agent:${TA_IUT}/vm:${VM_IUT}/status:"
