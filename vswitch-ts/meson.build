@@ -43,6 +43,8 @@ te_libs = [
     'tapi_tad',
     'rpc_dpdk',
     'rpcc_dpdk',
+    'ovs_flow',
+    'tapi_ovs',
 ]
 
 foreach lib : te_libs
